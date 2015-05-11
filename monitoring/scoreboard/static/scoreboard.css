@@ -1,0 +1,192 @@
+
+@font-face {
+    font-family: 'Myriad Pro Regular';
+    font-style: normal;
+    font-weight: normal;
+    src: local('Myriad Pro Regular'), url('/static/MYRIADPRO-REGULAR.woff') format('woff');
+}
+
+body {
+    font-family: 'Myriad Pro Regular';
+    background-image: url("site_bg.png");
+    background-repeat: repeat-x;
+    background-attachment: fixed;
+}
+
+.pretty_table {
+    box-shadow: 10px 10px 5px #888888;
+
+    -moz-border-radius-bottomleft:5px;
+    -webkit-border-bottom-left-radius:5px;
+    border-bottom-left-radius:5px;
+
+    -moz-border-radius-bottomright:5px;
+    -webkit-border-bottom-right-radius:5px;
+    border-bottom-right-radius:5px;
+
+    -moz-border-radius-topright:5px;
+    -webkit-border-top-right-radius:5px;
+    border-top-right-radius:5px;
+
+    -moz-border-radius-topleft:5px;
+    -webkit-border-top-left-radius:5px;
+    border-top-left-radius:5px;
+}
+
+.pretty_table table {
+    width:100%;
+    height:100%;
+    border-spacing: 10px;
+    border-collapse: separate;
+}
+
+.pretty_table tr:last-child td:last-child {
+    -moz-border-radius-bottomright: 5px;
+    -webkit-border-bottom-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+}
+
+.pretty_table tr:first-child td:first-child {
+    -moz-border-radius-topleft: 5px;
+    -webkit-border-top-left-radius: 5px;
+    border-top-left-radius: 5px;
+}
+
+.pretty_table tr:first-child td:last-child {
+    -moz-border-radius-topright: 5px;
+    -webkit-border-top-right-radius: 5px;
+    border-top-right-radius: 5px;
+}
+
+.pretty_table tr:last-child td:first-child {
+    -moz-border-radius-bottomleft: 5px;
+    -webkit-border-bottom-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+}
+
+.pretty_table td {
+    vertical-align: middle;
+    text-align: center;
+    padding: 5px;
+    border: solid 1px black;
+}
+
+.pretty_table_header {
+    background-color:#5C5C5C;
+    text-align:center;
+    color:#ffffff;
+    border: solid 1px black;
+    padding: 5px;
+    /* white-space: nowrap; */
+}
+
+.success {
+    background-color: #00FF00;
+}
+
+.success:hover {
+    font-weight: bold;
+    cursor:pointer;
+    background-color: #33CC00;
+}
+
+.fail {
+    background-color: #FF3300;
+}
+
+.fail:hover {
+    font-weight: bold;
+    cursor:pointer;
+    background-color: #FF0000;
+}
+
+.unknown {
+    background-color: #A0A0A0;
+}
+
+.unknown:hover {
+    font-weight: bold;
+    cursor:pointer;
+    background-color: #808080;
+}
+
+.no_result {
+    background-color: #E0E0E0;
+    opacity: 0.75;
+}
+
+.scoreboard_container {
+    margin-top: 10px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 90%;
+}
+
+.query_box_container {
+    margin-top: 15px;
+    margin-left: auto;
+    margin-right: auto;
+    background: #5C5C5C;
+    width: 90%;
+    border: solid 1px black;
+    border-radius: 5px;
+    -webkit-border-radius: 5px;
+    color: #ffffff;
+}
+
+.query_box {
+    padding: 10px;
+    margin: 0 auto;
+}
+
+.query_box_title {
+    font-size: 250%;
+    font-weight: bold;
+    display: inline-block;
+}
+
+.query_box form {
+    margin-left: 25px;
+    display: inline-block;
+}
+
+.query_box input {
+    border-radius:5px;
+    -webkit-border-radius:5px;
+    margin-left: 5px;
+    margin-right: 5px;
+    border: solid 1px black;
+    padding: 5px
+}
+
+.overlay_opaque {
+    opacity: 0.75;
+    background-color: #4C4C4C;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    top: 0px;
+    left: 0px;
+    z-index: 10000;
+}
+
+.overlay_title {
+    width: 100%;
+    font-size: 250%;
+    font-weight: bold;
+    text-align: center;
+    position: absolute;
+    bottom: 0;
+    z-index: 100001;
+}
+
+.overlay_clear {
+    background-color:rgba(0, 0, 0, 0.5)
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    top: 0px;
+    left: 0px;
+    z-index: 100000; /* more than the opaque one */
+}
+

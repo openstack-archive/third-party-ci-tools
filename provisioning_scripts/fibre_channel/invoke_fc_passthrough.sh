@@ -35,7 +35,9 @@
 # export FC_PROVIDER_KEY=/opt/nodepool-scripts/passthrough
 # export FC_PROVIDER_RC=/root/keystonerc_jenkins
 #
-# /opt/nodepool-scripts/invoke-fc-passthrough.sh
+# For single node setups where the hypervisor is the same as the provider, and dns
+# is not configured, export this variable to use the provider ip as the hypervisor
+# export FC_SINGLE_NODE=1
 
 eth0_ip=$(hostname  -I | cut -f1 -d' ')
 
@@ -89,17 +91,21 @@ if [[ $nova_result -ne 0 || $virsh_result -ne 0 || -z "$VIRSH_NAME" ]]; then
 fi
 
 # Get the hypervisor_hostname
-HYPERVISOR=$(echo "$NOVA_DETAILS" | grep hypervisor_hostname | cut -d \| -f 3 | tr -d '[:space:]')
-hypervisor_result=$?
-echo "HYPERVISOR result: $hypervisor_result"
-if [[ $hypervisor_result -ne 0 || -z "$HYPERVISOR" ]]; then
-    echo "Unable to get Hypervisor Host Name. Aborting. Debug info:"
-    echo "NOVA_LIST:"
-    echo $NOVA_LIST
-    echo "NOVA_DETAILS:"
-    echo $NOVA_DETAILS
-    echo "HYPERVISOR: $HYPERVISOR"
-    exit 2
+if [[ -z $FC_SINGLE_NODE ]]; then
+    HYPERVISOR=$(echo "$NOVA_DETAILS" | grep hypervisor_hostname | cut -d \| -f 3 | tr -d '[:space:]')
+    hypervisor_result=$?
+    echo "HYPERVISOR result: $hypervisor_result"
+    if [[ $hypervisor_result -ne 0 || -z "$HYPERVISOR" ]]; then
+        echo "Unable to get Hypervisor Host Name. Aborting. Debug info:"
+        echo "NOVA_LIST:"
+        echo $NOVA_LIST
+        echo "NOVA_DETAILS:"
+        echo $NOVA_DETAILS
+        echo "HYPERVISOR: $HYPERVISOR"
+        exit 2
+    fi
+else
+    HYPERVISOR=$PROVIDER
 fi
 echo "Found Hypervisor hostname: $HYPERVISOR"
 

@@ -143,7 +143,7 @@ for pci in $fc_pci_device; do
     fi
 
     echo $(sudo lspci | grep -i fib)
-    ssh -i $PROVIDER_KEY $PROVIDER_USER@$HYPERVISOR "virsh attach-device $VIRSH_NAME /tmp/fcoe.xml"
+    ssh -i $PROVIDER_KEY $PROVIDER_USER@$HYPERVISOR "virsh attach-device $VIRSH_NAME $fcoe"
     attach_result=$?
     echo "Attach result: $attach_result"
     if [[ $attach_result -eq 0 ]]; then

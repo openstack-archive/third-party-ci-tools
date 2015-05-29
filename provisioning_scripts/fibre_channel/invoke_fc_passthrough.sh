@@ -35,9 +35,16 @@
 # export FC_PROVIDER_KEY=/opt/nodepool-scripts/passthrough
 # export FC_PROVIDER_RC=/root/keystonerc_jenkins
 #
+# The maximum number of FC devices to passthrough, failing if they cannot all be
+# aquired
+# export FC_NUM=2
+#
 # For single node setups where the hypervisor is the same as the provider, and dns
 # is not configured, export this variable to use the provider ip as the hypervisor
 # export FC_SINGLE_NODE=1
+
+FC_NUM=${FC_NUM:-1}
+echo "Planning to passthrough $FC_NUM pci devices"
 
 eth0_ip=$(hostname  -I | cut -f1 -d' ')
 
@@ -122,6 +129,7 @@ exit_code=1
 errexit=$(set +o | grep errexit)
 #Ignore errors
 set +e
+let num_attached=0
 for pci in $fc_pci_device; do
     echo $pci
     BUS=$(echo $pci | cut -d : -f2)
@@ -154,9 +162,15 @@ for pci in $fc_pci_device; do
     echo "Attach result: $attach_result"
     if [[ $attach_result -eq 0 ]]; then
         echo "Attached succeed. Trying next device..."
+        (( num_attached += 1 ))
         exit_code=0
     fi
     echo $(sudo lspci | grep -i fib)
+    echo $num_attached
+    if [[ $num_attached -eq $FC_NUM ]]; then
+        echo "Attached $num_attached devices. Stopping"
+        break
+    fi
 
 done
 $errexit
@@ -164,6 +178,11 @@ $errexit
 if [[ $exit_code -ne 0 ]]; then
     echo "FC Passthrough failed. Aborting."
     exit $exit_code
+fi
+
+if [[ $num_attached -ne $FC_NUM ]]; then
+    echo "FC requested $FC_NUM, but only attached $num_attached. Aborting."
+    exit 1
 fi
 
 # Make sure that really it worked...

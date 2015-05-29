@@ -176,7 +176,7 @@ echo $?
 echo $(sudo lspci | grep -i fib)
 
 device_path=$(sudo systool -c fc_host -v | grep "Device path")
-if [[ ${device_path}  -eq 0 ]]; then
+if [[ ${#device_path}  -eq 0 ]]; then
     echo "Failed to install FC Drivers. Aborting."
     exit 1
 fi

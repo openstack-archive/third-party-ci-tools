@@ -42,20 +42,17 @@ def results():
     # TODO: We should have a cache for these requests
     # so we don't get hammered by reloading pages
     project = request.args.get('project', None)
-    username = request.args.get('user', None)
     count = request.args.get('count', None)
     start = request.args.get('start', None)
     timeframe = request.args.get('timeframe', None)
 
-    return query_results(project, username, count, start, timeframe)
+    return query_results(project, count, start, timeframe)
 
 
-def query_results(project, user_name, count, start, timeframe):
+def query_results(project, count, start, timeframe):
     query = {}
     if project:
         query['project'] = project
-    if user_name:
-        query['results.' + user_name] = {'$exists': True, '$ne': None}
     if timeframe:
         num_hours = int(timeframe)
         current_time = datetime.datetime.utcnow()

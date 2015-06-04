@@ -14,7 +14,7 @@ body {
 }
 
 .pretty_table {
-    box-shadow: 10px 10px 5px #888888;
+    box-shadow: 5px 5px 2px #888888;
 
     -moz-border-radius-bottomleft:5px;
     -webkit-border-bottom-left-radius:5px;
@@ -80,6 +80,11 @@ body {
     /* white-space: nowrap; */
 }
 
+.pretty_table_header:hover {
+    font-weight: bold;
+    cursor:pointer;
+}
+
 .success {
     background-color: #00FF00;
 }
@@ -132,6 +137,7 @@ body {
     border-radius: 5px;
     -webkit-border-radius: 5px;
     color: #ffffff;
+    box-shadow: 5px 5px 2px #888888;
 }
 
 .query_box {

@@ -9,6 +9,8 @@ var Scoreboard = (function () {
 
     var ci_results = null;
     var ci_accounts = null;
+    var user_filter = null;
+
     var row_cache = {};
 
     var spinner = null;
@@ -92,8 +94,20 @@ var Scoreboard = (function () {
         var all_ci_accounts = JSON.parse(ci_accounts_raw);
         var ci_account_objs = {};
         ci_accounts = [];
+
+        // Filter if there is a user url param
+        var user_param = get_param_by_name('user')
+        user_filter = []
+        if (user_param != '') {
+            user_filter = user_param.replace(/\s+/g, '').split(',')
+        }
+
         for (var patchset in ci_results) {
             for (var ci in ci_results[patchset].results) {
+                if (user_filter.length > 0 && user_filter.indexOf(ci) == -1) {
+                    continue;
+                }
+
                 if (!(ci in ci_account_objs)) {
                     ci_account_objs[ci] = true;
                     ci_accounts.push(find_ci_in_list(ci, all_ci_accounts));
@@ -112,8 +126,8 @@ var Scoreboard = (function () {
         return td;
     };
 
-    var create_filler = function () {
-        td = $(document.createElement('td'));
+    var create_filler = function (td) {
+        if (!td) td = $(document.createElement('td'));
         td.addClass('no_result');
         td.html('&nbsp');
         return td;
@@ -149,6 +163,17 @@ var Scoreboard = (function () {
         cell.html(result);
     };
 
+    var add_on_click_url = function(element, url) {
+        element.on('click', (function () {
+            // closures are weird.. scope the url so each on click is using
+            // the right one and not just the last url handled by the loop
+            var review_url = url;
+            return function () {
+                window.open(review_url, '_blank');
+            }
+        })());
+    };
+
     var handle_patchset = function(patchset) {
         var result_row = null;
         var ci_index = null;
@@ -161,28 +186,22 @@ var Scoreboard = (function () {
         var label = create_header();
         label.html(review_id_patchset);
         label.appendTo(result_row);
+        var review_patchset_split = review_id_patchset.split(',');
+        var url = "https://review.openstack.org/#/c/" + review_patchset_split[0] + "/" + review_patchset_split[1];
+        add_on_click_url(label, url);
+        label.prop('title', url);
 
         for (var i = 0; i < ci_accounts.length; i++) {
             var ci_account = ci_accounts[i];
-            var td = null;
+            var td = $(document.createElement('td'));
             if (ci_account._id in patchset.results) {
                 var result = patchset.results[ci_account._id];
-                td = $(document.createElement('td'));
-                review_patchset_split = review_id_patchset.split(',');
-                var url = "https://review.openstack.org/#/c/" + review_patchset_split[0] + "/" + review_patchset_split[1];
-                td.on('click', (function () {
-                    // closures are weird.. scope the url so each on click is using
-                    // the right one and not just the last url handled by the loop
-                    var review_url = url;
-                    return function () {
-                        window.open(review_url, '_blank');
-                    }
-                })());
+                add_on_click_url(td, url)
                 td.prop('title', url);
                 set_result(td, result);
             }
             else {
-                td = create_filler();
+                td = create_filler(td);
             }
             td.appendTo(result_row);
         }
@@ -209,9 +228,7 @@ var Scoreboard = (function () {
 
         // TODO: maybe process some of this in a worker thread?
         // It might be nice if we can build a model and then render it
-        // all in one go instead of modifying the DOM so much... or at
-        // least do some pre-checks to build out all of the columns
-        // first so we don't have to keep updating them later on
+        // all in one go instead of modifying the DOM so much...
         //
         // For now we will handle a single result at a time (later on
         // we could maybe stream/pull incremental updates so the page
@@ -236,9 +253,9 @@ var Scoreboard = (function () {
         })();
     };
 
-    var add_input_to_form = function (form, label_text, input_name, starting_val) {
+    var add_input_to_form = function (form, input_type, label_text, input_name, starting_val) {
         var label = $('<label>').text(label_text + ":");
-        var input = $('<input type="text">').attr({id: input_name, name: input_name});
+        var input = $('<input/>').attr({type: input_type, id: input_name, name: input_name});
         input.appendTo(label);
         if (starting_val) {
             input.val(starting_val);
@@ -268,15 +285,15 @@ var Scoreboard = (function () {
         title.addClass('query_box_title');
         title.appendTo(qb_div);
 
-        current_project = get_param_by_name('project');
-        current_user = get_param_by_name('user');
-        current_timeframe = get_param_by_name('timeframe');
+        var current_project = get_param_by_name('project');
+        var current_user = get_param_by_name('user');
+        var current_timeframe = get_param_by_name('timeframe');
 
         var form = $(document.createElement('form'));
 
-        add_input_to_form(form, 'Project Name', 'project', current_project);
-        add_input_to_form(form, 'CI Account Username', 'user', current_user);
-        add_input_to_form(form, 'Timeframe (hours)', 'timeframe', current_timeframe);
+        add_input_to_form(form, 'text', 'Project Name', 'project', current_project);
+        add_input_to_form(form, 'text', 'CI Account Username', 'user', current_user);
+        add_input_to_form(form, 'text', 'Timeframe (hours)', 'timeframe', current_timeframe);
         // TODO: Implement the "start" and "count" filters so we can do pagination
 
         submit_button = $('<input/>', { type:'submit', value:'GO!'});

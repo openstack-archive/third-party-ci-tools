@@ -639,5 +639,11 @@ third_party_group =[
     u"name": u"vArmour CI",
     u"username": u"varmourci",
     u"avatars": []
+  },
+  {
+    u"_account_id": 15286,
+    u"name": u"XenProject CI",
+    u"username": u"XenProject-CI",
+    u"avatars": []
   }
 ]

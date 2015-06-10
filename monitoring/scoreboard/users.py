@@ -251,6 +251,18 @@ third_party_group =[
     u"avatars": []
   },
   {
+    u"_account_id": 16269,
+    u"name": u"Hitachi HBSD CI",
+    u"username": u"hitachi-hbsd-ci",
+    u"avatars": []
+  },
+  {
+    u"_account_id": 16660,
+    u"name": u"Hitachi HBSD2 CI",
+    u"username": u"hitachi-hbsd2-ci",
+    u"avatars": []
+  },
+  {
     u"_account_id": 11811,
     u"name": u"HP Storage CI",
     u"username": u"hp-cinder-ci",

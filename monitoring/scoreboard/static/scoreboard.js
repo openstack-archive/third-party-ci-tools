@@ -288,12 +288,16 @@ var Scoreboard = (function () {
         var current_project = get_param_by_name('project');
         var current_user = get_param_by_name('user');
         var current_timeframe = get_param_by_name('timeframe');
+        var start_date = get_param_by_name('start');
+        var end_date = get_param_by_name('end');
 
         var form = $(document.createElement('form'));
 
         add_input_to_form(form, 'text', 'Project Name', 'project', current_project);
         add_input_to_form(form, 'text', 'CI Account Username', 'user', current_user);
         add_input_to_form(form, 'text', 'Timeframe (hours)', 'timeframe', current_timeframe);
+        add_input_to_form(form, 'date', 'Start Date', 'start', start_date);
+        add_input_to_form(form, 'date', 'End Date', 'end', end_date);
         // TODO: Implement the "start" and "count" filters so we can do pagination
 
         submit_button = $('<input/>', { type:'submit', value:'GO!'});

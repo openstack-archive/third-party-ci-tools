@@ -43,21 +43,21 @@ def results():
     # so we don't get hammered by reloading pages
     project = request.args.get('project', None)
     count = request.args.get('count', None)
+    skip = request.args.get('skip', None)
     start = request.args.get('start', None)
-    timeframe = request.args.get('timeframe', None)
+    end = request.args.get('end', None)
 
-    return query_results(project, count, start, timeframe)
+    return query_results(project, count, skip, start, end)
 
-
-def query_results(project, count, start, timeframe):
+def query_results(project, count, skip, start, end):
     query = {}
+    date_format = '%Y-%m-%d'
     if project:
         query['project'] = project
-    if timeframe:
-        num_hours = int(timeframe)
-        current_time = datetime.datetime.utcnow()
-        start_time = current_time - datetime.timedelta(hours=num_hours)
-        query['created'] = {'$gt': start_time}
+    if start and end:
+        start = datetime.datetime.strptime(start, date_format)
+        end = datetime.datetime.strptime(end, date_format)
+        query['created'] = {'$gte': start, '$lt': end}
     records = db.test_results.find(query).sort('created', pymongo.DESCENDING)
     return json_util.dumps(records)
 

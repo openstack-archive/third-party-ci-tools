@@ -6,31 +6,36 @@ import re
 import utils
 
 
-def check_nodepool_image_status(warning_threshold, critial_threshold):
+def check_nodepool_image_status(warning_threshold, critial_threshold, image, check_dib):
     """Returns a tuple of exit code and message string
 
-    Exit codes are either 2 -> critical or 0 -> OK
-    There are no warnings with gearman job checker
+    Exit codes are either 2 -> critical, 1 -> warning, or 0 -> OK
     """
     try:
-        image_list_raw = utils.run_command_local('sudo /usr/local/bin/nodepool image-list')
+        if check_dib:
+            cmd = 'dib-image-list'
+        else:
+            cmd = 'image-list'
+        image_list_raw = utils.run_command_local('sudo /usr/local/bin/nodepool ' + cmd)
         image_list_lines = image_list_raw.split('\n')
         newest_image_age = None
 
         for line in image_list_lines:
-            match = re.search('\|\s+(\w+)\s+\|\s+(\d+\.\d+)\s+\|$', line)
-            if match:
-                status = match.group(1)
-                age = float(match.group(2))
-                if status == 'ready':
-                    if (newest_image_age is None) or (age < newest_image_age):
-                        newest_image_age = age
+            if re.search('\|\s+' + image + '\s+\|', line):
+                match = re.search('\|\s+(\w+)\s+\|\s+(\d+:\d+:\d+:\d+)\s+\|$', line)
+                if match:
+                    status = match.group(1)
+                    if status == 'ready':
+                        age_parts = match.group(2).split(':')
+                        age_in_hours = (int(age_parts[0]) * 24) + int(age_parts[1])
+                        if (newest_image_age is None) or (age_in_hours < newest_image_age):
+                            newest_image_age = age_in_hours
 
-        if not newest_image_age:
+        if newest_image_age is None:
             return 2, 'Error running command, output: ' + image_list_raw
 
         exit_code = 0
-        if newest_image_age > warning_threshold:
+        if newest_image_age > critial_threshold:
             exit_code = 2
         elif newest_image_age > warning_threshold:
             exit_code = 1
@@ -43,7 +48,9 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Check nodepool image status.')
     parser.add_argument('-w', required=True, type=int, help='warning threshold for age of the image in hours')
     parser.add_argument('-c', required=True, type=int, help='critical threshold for age of the image in hours')
+    parser.add_argument('-i', required=True, type=str, help='name of image')
+    parser.add_argument('--dib', action='store_true', help='Check dib images.')
     args = parser.parse_args()
-    code, message = check_nodepool_image_status(args.w, args.c)
+    code, message = check_nodepool_image_status(args.w, args.c, args.i, args.dib)
     print message
     exit(code)

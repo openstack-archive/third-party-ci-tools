@@ -46,6 +46,16 @@
 FC_NUM=${FC_NUM:-1}
 FC_PCI_VAR_NAME=${FC_PCI_VAR_NAME:-"fc_pci_device"}
 
+# Time in seconds to wait between dettach and attach for FC PCI devices.
+# Some systems may need a few seconds, others 0 is fine.
+FC_DETACH_WAIT_TIME=${FC_DETACH_WAIT_TIME:-0}
+
+# Number of times to retry the passthrough to get the number of desired devices
+FC_RETRY_COUNT=${FC_RETRY_COUNT:-3}
+
+# Time in seconds to wait between retry attempts
+FC_RETRY_SLEEP_TIME=${FC_RETRY_SLEEP_TIME:-0}
+
 echo "Planning to passthrough $FC_NUM pci devices"
 
 eth0_ip=$(hostname  -I | cut -f1 -d' ')
@@ -80,6 +90,7 @@ if [[ $nova_result -ne 0 || -z "$NOVA_ID" ]]; then
     echo "NOVA_ID: $NOVA_ID"
     exit 2
 fi
+echo "Found nova instance id: $NOVA_ID"
 
 # Get instance details
 NOVA_DETAILS=$(ssh -i $PROVIDER_KEY $PROVIDER_USER@$PROVIDER "source $PROVIDER_RC && nova show $NOVA_ID")
@@ -98,6 +109,7 @@ if [[ $nova_result -ne 0 || $virsh_result -ne 0 || -z "$VIRSH_NAME" ]]; then
     echo "VIRSH_NAME: $VIRSH_NAME"
     exit 2
 fi
+echo "Found virsh name: $VIRSH_NAME"
 
 # Get the hypervisor_hostname
 if [[ -z $FC_SINGLE_NODE ]]; then
@@ -126,79 +138,101 @@ if [[ -z $fc_pci_device ]]; then
     exit 2
 fi
 
-echo "Found pci devices: $fc_pci_device"
-
+echo "Found potential PCI devices: $fc_pci_device"
+echo "Atempting passthrough..."
 exit_code=1
 errexit=$(set +o | grep errexit)
 #Ignore errors
 set +e
 let num_attached=0
-for pci in $fc_pci_device; do
-    echo $pci
-    BUS=$(echo $pci | cut -d : -f2)
-    SLOT=$(echo $pci | cut -d : -f3 | cut -d . -f1)
-    FUNCTION=$(echo $pci | cut -d : -f3 | cut -d . -f2)
-    XML="<hostdev mode='subsystem' type='pci' managed='yes'><source><address domain='0x0000' bus='0x$BUS' slot='0x$SLOT' function='0x$FUNCTION'/></source></hostdev>"
-    echo $XML
-    fcoe=`mktemp --suffix=_fcoe.xml`
-    echo $XML > $fcoe
+let retry_count=0
+while true; do
+    for pci in $fc_pci_device; do
+        echo "Trying FC PCI device: $pci"
 
-    scp -i $PROVIDER_KEY $fcoe $PROVIDER_USER@$HYPERVISOR:/tmp/
+        # Generate xml for virsh to use
+        BUS=$(echo $pci | cut -d : -f2)
+        SLOT=$(echo $pci | cut -d : -f3 | cut -d . -f1)
+        FUNCTION=$(echo $pci | cut -d : -f3 | cut -d . -f2)
+        XML="<hostdev mode='subsystem' type='pci' managed='yes'><source><address domain='0x0000' bus='0x$BUS' slot='0x$SLOT' function='0x$FUNCTION'/></source></hostdev>"
+        echo "Virsh device xml: $XML"
+        fcoe=`mktemp --suffix=_fcoe.xml`
 
-    # Run passthrough and clean up.
-    # TODO: At the point where we can do more than one node on a provider we
-    # will need to do this cleanup at the end of the job and not *before* attaching
-    # since we won't know which ones are still in use
-    echo $(sudo lspci | grep -i fib)
-    ssh -i $PROVIDER_KEY $PROVIDER_USER@$HYPERVISOR "virsh nodedev-dettach pci_0000_${BUS}_${SLOT}_${FUNCTION}"
+        # Copy the tmp xml to the hypervisor
+        echo $XML > $fcoe
+        echo "Storing in $fcoe"
+        echo "Copying..."
+        scp -i $PROVIDER_KEY $fcoe $PROVIDER_USER@$HYPERVISOR:/tmp/
 
-    detach_result=$?
-    echo "Detach result: $detach_result"
-    if [[ $detach_result -ne 0 ]]; then
-        echo "Detach failed. Trying next device..."
-        continue
-    fi
+        # Detach the pci device so it can be passed through to a vm
+        VIRSH_DEVICE="pci_0000_${BUS}_${SLOT}_${FUNCTION}"
+        echo "Detaching $VIRSH_DEVICE..."
+        ssh -i $PROVIDER_KEY $PROVIDER_USER@$HYPERVISOR "virsh nodedev-dettach $VIRSH_DEVICE"
 
-    echo $(sudo lspci | grep -i fib)
-    ssh -i $PROVIDER_KEY $PROVIDER_USER@$HYPERVISOR "virsh attach-device $VIRSH_NAME $fcoe"
-    attach_result=$?
-    echo "Attach result: $attach_result"
-    if [[ $attach_result -eq 0 ]]; then
-        echo "Attached succeed. Trying next device..."
-        (( num_attached += 1 ))
-        exit_code=0
-    fi
-    echo $(sudo lspci | grep -i fib)
-    echo $num_attached
+        detach_result=$?
+        echo "Detach result: $detach_result"
+        if [[ $detach_result -ne 0 ]]; then
+            echo "Detach failed. Trying next device..."
+            continue
+        fi
+
+        sleep $FC_DETACH_WAIT_TIME
+
+        echo "Attaching. $VIRSH_DEVICE..."
+        ssh -i $PROVIDER_KEY $PROVIDER_USER@$HYPERVISOR "virsh attach-device $VIRSH_NAME $fcoe"
+        attach_result=$?
+        echo "Attach result: $attach_result"
+        if [[ $attach_result -eq 0 ]]; then
+            echo "Attached succeed. Trying next device..."
+            (( num_attached += 1 ))
+        fi
+        echo "FC Devices after attach attempt:"
+        echo $(sudo lspci | grep -i fib)
+        echo "Total attached FC devices: $num_attached"
+        if [[ $num_attached -eq $FC_NUM ]]; then
+            echo "Attached $num_attached devices. Stopping"
+            break
+        fi
+    done
+
+    echo "Total attached FC devices: $num_attached"
     if [[ $num_attached -eq $FC_NUM ]]; then
-        echo "Attached $num_attached devices. Stopping"
         break
     fi
 
+    if [[ retry_count -ge $FC_RETRY_COUNT ]]; then
+        echo "FC requested $FC_NUM, but only attached $num_attached. Aborting after $retry_count attempts."
+        exit 1
+    fi
+    (( retry_count += 1 ))
+    echo "FC requested $FC_NUM, but only attached $num_attached. Retrying ($retry_count)..."
+    sleep $FC_RETRY_SLEEP_TIME
 done
 $errexit
 
-if [[ $exit_code -ne 0 ]]; then
-    echo "FC Passthrough failed. Aborting."
-    exit $exit_code
-fi
-
-if [[ $num_attached -ne $FC_NUM ]]; then
-    echo "FC requested $FC_NUM, but only attached $num_attached. Aborting."
-    exit 1
-fi
-
 # Make sure that really it worked...
-sudo modprobe lpfc
-echo $?
+echo "Testing to ensure FC passthrough actuall worked..."
+sudo modprobe lpfc || echo "Failed to find lpfc module!"
 
-sudo systool -c fc_host -v
-echo $?
+sudo systool -c fc_host -v || echo "Failed to find fc_host entries!"
 
+echo "Final list of FC devices:"
 echo $(sudo lspci | grep -i fib)
 
-device_path=$(sudo systool -c fc_host -v | grep "Device path")
-if [[ ${#device_path}  -eq 0 ]]; then
-    echo "Failed to install FC Drivers. Aborting."
-    exit 1
-fi
+let retry_count=0
+while true; do
+    device_path=$(sudo systool -c fc_host -v | grep "Device path")
+    if [[ ${#device_path}  -eq 0 ]]; then
+        if [[ retry_count -ge $FC_RETRY_COUNT ]]; then
+            echo "Failed to find FC Device path with $num_attached devices. Aborting after $retry_count attempts."
+            exit 1
+        fi
+        (( retry_count += 1 ))
+        echo "Unable to verify FC hosts. Retrying ($retry_count)..."
+        sleep $FC_RETRY_SLEEP_TIME
+    else
+        break
+    fi
+done
+
+echo "FC Passthrough success!"

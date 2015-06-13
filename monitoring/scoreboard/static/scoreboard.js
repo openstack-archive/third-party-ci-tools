@@ -264,6 +264,10 @@ var Scoreboard = (function () {
         return input;
     }
 
+    var add_break_to_form = function (form) {
+        $('<br/>').appendTo(form);
+    }
+
     var get_param_by_name = function (name) {
         name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
         var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
@@ -295,6 +299,7 @@ var Scoreboard = (function () {
 
         add_input_to_form(form, 'text', 'Project Name', 'project', current_project);
         add_input_to_form(form, 'text', 'CI Account Username', 'user', current_user);
+        add_break_to_form(form);
         add_input_to_form(form, 'text', 'Timeframe (hours)', 'timeframe', current_timeframe);
         add_input_to_form(form, 'date', 'Start Date', 'start', start_date);
         add_input_to_form(form, 'date', 'End Date', 'end', end_date);

@@ -1,21 +1,11 @@
 
-@font-face {
-    font-family: 'Myriad Pro Regular';
-    font-style: normal;
-    font-weight: normal;
-    src: local('Myriad Pro Regular'), url('/static/MYRIADPRO-REGULAR.woff') format('woff');
-}
-
 body {
-    font-family: 'Myriad Pro Regular';
-    background-image: url("site_bg.png");
-    background-repeat: repeat-x;
-    background-attachment: fixed;
+    font-family: helvetica, arial, sans-serif;
+    background: white url("site_bg.jpg") no-repeat scroll 0px 0px;
+    color: #535353;
 }
 
 .pretty_table {
-    box-shadow: 5px 5px 2px #888888;
-
     -moz-border-radius-bottomleft:5px;
     -webkit-border-bottom-left-radius:5px;
     border-bottom-left-radius:5px;
@@ -68,76 +58,71 @@ body {
     vertical-align: middle;
     text-align: center;
     padding: 5px;
-    border: solid 1px black;
+    border: solid 1px grey;
 }
 
 .pretty_table_header {
-    background-color:#5C5C5C;
-    text-align:center;
-    color:#ffffff;
-    border: solid 1px black;
+    background-color:#F1F1F1;
+    text-align: center;
+    color: black;
+    border: solid 1px grey;
     padding: 5px;
-    /* white-space: nowrap; */
 }
 
 .pretty_table_header:hover {
-    font-weight: bold;
-    cursor:pointer;
+    cursor: pointer;
+    text-decoration: underline;
 }
 
 .success {
-    background-color: #00FF00;
+    background-color: #E9F0D8;
+    color: #3C763D;
 }
 
 .success:hover {
-    font-weight: bold;
-    cursor:pointer;
-    background-color: #33CC00;
+    cursor: pointer;
+    background-color: #E9F0D8;
+    border: solid 1px #3C763D;
+    text-decoration: underline;
 }
 
 .fail {
-    background-color: #FF3300;
+    color: #FF7577;
+    background-color: #FFDBDC;
 }
 
 .fail:hover {
-    font-weight: bold;
     cursor:pointer;
-    background-color: #FF0000;
+    background-color: #FFDBDC;
+    text-decoration: underline;
 }
 
 .unknown {
-    background-color: #A0A0A0;
+    background-color: #F9F9F9;
 }
 
 .unknown:hover {
-    font-weight: bold;
     cursor:pointer;
-    background-color: #808080;
+    text-decoration: underline;
 }
 
 .no_result {
-    background-color: #E0E0E0;
+    background-color: white;
     opacity: 0.75;
 }
 
 .scoreboard_container {
     margin-top: 10px;
-    margin-left: auto;
-    margin-right: auto;
+    margin-left: 10px;
     width: 90%;
 }
 
 .query_box_container {
     margin-top: 15px;
-    margin-left: auto;
-    margin-right: auto;
-    background: #5C5C5C;
+    margin-left: 10px;
+    background: rgba(255, 255, 255, 0);
     width: 90%;
-    border: solid 1px black;
-    border-radius: 5px;
-    -webkit-border-radius: 5px;
-    color: #ffffff;
-    box-shadow: 5px 5px 2px #888888;
+    color: #535353;
 }
 
 .query_box {
@@ -146,23 +131,19 @@ body {
 }
 
 .query_box_title {
-    font-size: 250%;
-    font-weight: bold;
+    font-size: 150%;
     display: inline-block;
-}
-
-.query_box form {
-    margin-left: 25px;
-    display: inline-block;
+    color: #264D69;
+    margin: 2px;s
 }
 
 .query_box input {
-    border-radius:5px;
-    -webkit-border-radius:5px;
-    margin-left: 5px;
-    margin-right: 5px;
-    border: solid 1px black;
-    padding: 5px
+    margin-top: 2px;
+    margin-bottom: 2px;
+    margin-left: 10px;
+    margin-right: 10px;
+    border: solid 1px #bbb;
+    /* padding: 5px; */
 }
 
 .overlay_opaque {
@@ -178,7 +159,7 @@ body {
 
 .overlay_title {
     width: 100%;
-    font-size: 250%;
+    font-size: 125%;
     font-weight: bold;
     text-align: center;
     position: absolute;
@@ -196,3 +177,6 @@ body {
     z-index: 100000; /* more than the opaque one */
 }
 
+#logo {
+    margin-left: 10px;
+}

@@ -8,30 +8,20 @@ import config
 import db_helper
 from infra import gerrit
 import logger
-import users
 
+USERS_UPDATE_INTERVAL = 60 * 5  # Seconds
 
 class GerritCIListener():
     def __init__(self):
-        self.ci_user_names = []
+        self.ci_users = {}
         self.cfg = config.Config()
         self.db = db_helper.DBHelper(self.cfg).get()
         logger.init(self.cfg)
         self.log = logger.get('scoreboard-gerrit-listener')
-
-    def get_thirdparty_users(self):
-        # TODO: figure out how to do the authentication..
-        # thirdparty_group = '95d633d37a5d6b06df758e57b1370705ec071a57'
-        # url = 'http://review.openstack.org/groups/%s/members' % thirdparty_group
-        # members = eval(urllib.urlopen(url).read())
-        members = users.third_party_group
-        for account in members:
-            username = account[u'username']
-            self.ci_user_names.append(username)
+        self.g = None
 
     def is_ci_user(self, username):
-        # TODO: query this from gerrit. Maybe save a copy in the db?
-        return (username in self.ci_user_names) or (username == u'jenkins')
+        return username in self.ci_users
 
     def determine_result(self, event):
         approvals = event.get(u'approvals', None)
@@ -97,27 +87,60 @@ class GerritCIListener():
                 self.log.info('Inserting %s' % review_num_patchset)
                 self.db.test_results.insert(patchset)
 
+    def periodic_query_users(self):
+        self.log.info('Updating Third-Party CI user list')
+
+        # Query for the most up to date list of users
+        raw_members = self.g.lsMembers('Third-Party CI')
+
+        # Cut off the first line, we don't care about the column headers
+        del raw_members[0]
+
+        current_members = {}
+
+        # Format the results for easier consumption
+        for line in raw_members:
+            if line:
+                id, user_name, full_name, email = line.split('\t')
+                current_members[user_name] = {
+                    'gerrit_id': id,
+                    'full_name': full_name,
+                    'email': email,
+                }
+
+        # Add a special one for jenkins, its not part of the group but
+        # we want to count it too.
+        current_members['jenkins'] = {
+            'gerrit_id': -1,
+            'full_name': 'jenkins',
+            'email': ''
+        }
+
+        self.ci_users = current_members
+
+        self.log.debug('Updated ci group members: ' + str(self.ci_users))
+
+        # Schedule to re-run again
+        threading.Timer(USERS_UPDATE_INTERVAL, self.periodic_query_users).start()
+
     def run(self):
-        # TODO: Maybe split this into its own process? Its kind of annoying that
-        # when modifying the UI portion of the project it stops gathering data..
         hostname = self.cfg.gerrit_hostname()
         username = self.cfg.gerrit_user()
         port = self.cfg.gerrit_port()
         keyfile = self.cfg.gerrit_key()
 
-        g = gerrit.Gerrit(hostname, username, port=port, keyfile=keyfile)
-        g.startWatching()
+        self.g = gerrit.Gerrit(hostname, username, port=port, keyfile=keyfile)
+        self.g.startWatching()
 
-        self.get_thirdparty_users()
+        self.periodic_query_users()
 
         while True:
-            event = g.getEvent()
+            event = self.g.getEvent()
             try:
                 self.handle_gerrit_event(event)
             except:
-                self.log.exception('Failed to handle gerrit event: ')
-            g.eventDone()
-
+                self.log.exception('Failed to handle gerrit event: ' + str(event))
+            self.g.eventDone()
 
 if __name__ == '__main__':
     listener = GerritCIListener()

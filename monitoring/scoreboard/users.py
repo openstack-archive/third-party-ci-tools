@@ -443,6 +443,12 @@ third_party_group =[
     u"avatars": []
   },
   {
+    u"_account_id": 15764,
+    u"name": u"NetApp FC CI",
+    u"username": u"netapp-fc-ci",
+    u"avatars": []
+  },
+  {
     u"_account_id": 13395,
     u"name": u"NetApp NAS CI",
     u"username": u"netapp-nas-ci",

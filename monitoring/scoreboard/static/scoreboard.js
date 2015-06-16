@@ -17,6 +17,8 @@ var Scoreboard = (function () {
     var overlay = null;
     var opaque_overlay = null;
 
+    var score = {};
+
     var hide_overlay = function () {
         spinner.stop();
         overlay.remove();
@@ -139,8 +141,9 @@ var Scoreboard = (function () {
         td.appendTo(table_header);
     };
 
-    var set_result = function(cell, result) {
+    var set_result = function(cell, result, ci_account) {
         var cell_class = null;
+        var count = null;
 
         switch (result) {
             case 'SUCCESS':
@@ -158,6 +161,16 @@ var Scoreboard = (function () {
                 cell_class = 'unknown';
                 break;
         }
+
+        var result_type = cell_class.toUpperCase();
+
+        if (!score[result_type]) {
+            score[result_type] = {}
+        }
+
+        score[result_type][ci_account] = score[result_type][ci_account] || 0
+        count = score[result_type][ci_account] + 1
+        score[result_type][ci_account] = count
 
         cell.removeClass().addClass(cell_class);
         cell.html(result);
@@ -198,7 +211,7 @@ var Scoreboard = (function () {
                 var result = patchset.results[ci_account._id];
                 add_on_click_url(td, url)
                 td.prop('title', url);
-                set_result(td, result);
+                set_result(td, result, ci_account._id);
             }
             else {
                 td = create_filler(td);
@@ -218,6 +231,7 @@ var Scoreboard = (function () {
         // build a table header that will (by the time
         // we're done) have row for each ci account name
         table_header = $(document.createElement('tr'));
+        table_header.addClass('table_header');
         create_header().appendTo(table_header); // spacer box
         table_header.appendTo(table);
 
@@ -248,9 +262,35 @@ var Scoreboard = (function () {
                 index++;
                 window.setTimeout(handle_patchset_wrapper, 0);
             } else {
+                build_score();
                 hide_overlay();
             }
         })();
+    };
+
+    var build_score = function () {
+        var score_row = null;
+        var label = null;
+
+        var scores = Object.keys(score);
+
+        for (var i = 0; i < scores.length; i++) {
+            var result_type = scores[i];
+            score_row = $(document.createElement('tr'));
+
+            label = create_header();
+            label.html(result_type);
+            label.appendTo(score_row);
+
+            for (var j = 0; j < ci_accounts.length; j++) {
+                var ci = ci_accounts[j]
+
+                label = create_header();
+                label.html(score[result_type][ci._id] || 0);
+                label.appendTo(score_row);
+            }
+            $(score_row).insertAfter($('table tr.table_header'));
+        }
     };
 
     var add_input_to_form = function (form, input_type, label_text, input_name, starting_val) {

@@ -174,6 +174,29 @@ body {
     z-index: 100000; /* more than the opaque one */
 }
 
+.pagination {
+    margin: auto 10px;
+    padding: 10px;
+    list-style-type: none;
+    text-align: center;
+    font-size: 90%;
+}
+
+.pagination li {
+    display: inline;
+    margin: 10px;
+}
+
+.pagination li a {
+    color: #264D69;
+    text-decoration: none;
+}
+
+.pagination li a:hover {
+    color: #264D69;
+    text-decoration: underline;
+}
+
 #logo {
     margin-left: 10px;
 }

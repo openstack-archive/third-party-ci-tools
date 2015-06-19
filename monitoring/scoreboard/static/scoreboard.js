@@ -1,9 +1,12 @@
 
 var Scoreboard = (function () {
     var board = {};
+    var row_cache = {};
+    var score = {};
 
     var table_div_id = null;
     var table = null;
+    var form = null;
     var table_header = null;
     var hostname = null;
 
@@ -11,13 +14,12 @@ var Scoreboard = (function () {
     var ci_accounts = null;
     var user_filter = null;
 
-    var row_cache = {};
-
     var spinner = null;
     var overlay = null;
     var opaque_overlay = null;
 
-    var score = {};
+    var pg_results = null;
+    var PER_PAGE = 25;
 
     var hide_overlay = function () {
         spinner.stop();
@@ -67,8 +69,10 @@ var Scoreboard = (function () {
             url: 'results',
             data: window.location.search.substring(1),
             success: function(data) {
-                ci_results = JSON.parse(data);
-                get_ci_accounts()
+                response = JSON.parse(data);
+                ci_results = response.records;
+                pg_results = response.total;
+                get_ci_accounts();
             }
         });
     };
@@ -263,6 +267,7 @@ var Scoreboard = (function () {
                 window.setTimeout(handle_patchset_wrapper, 0);
             } else {
                 build_score();
+                build_pagination();
                 hide_overlay();
             }
         })();
@@ -292,6 +297,17 @@ var Scoreboard = (function () {
             $(score_row).insertAfter($('table tr.table_header'));
         }
     };
+
+    var build_pagination = function () {
+        var ul = $("#paginator").append('<ul></ul>').find('ul');
+        ul.addClass('pagination');
+        n_pages = Math.ceil(pg_results.total / PER_PAGE);
+
+        for (var i = 1; i <= n_pages; i++) {
+            url = '?' + form.serialize() + '&count=' + i;
+            ul.append('<li id="page' + i + '" class="pages"><a href="/' + url + '">' + i + '</a></li>');
+        }
+    }
 
     var add_input_to_form = function (form, input_type, label_text, input_name, starting_val) {
         var label = $('<label>').text(label_text + ":");
@@ -335,7 +351,7 @@ var Scoreboard = (function () {
         var start_date = get_param_by_name('start');
         var end_date = get_param_by_name('end');
 
-        var form = $(document.createElement('form'));
+        form = $(document.createElement('form'));
 
         add_input_to_form(form, 'text', 'Project Name', 'project', current_project);
         add_input_to_form(form, 'text', 'CI Account Username', 'user', current_user);
@@ -343,10 +359,10 @@ var Scoreboard = (function () {
         add_input_to_form(form, 'text', 'Timeframe (hours)', 'timeframe', current_timeframe);
         add_input_to_form(form, 'date', 'Start Date', 'start', start_date);
         add_input_to_form(form, 'date', 'End Date', 'end', end_date);
-        // TODO: Implement the "start" and "count" filters so we can do pagination
 
         submit_button = $('<input/>', { type:'submit', value:'GO!'});
         submit_button.appendTo(form);
+
         form.submit(function(){
             location.href = '/' + $(this).serialize();
         });

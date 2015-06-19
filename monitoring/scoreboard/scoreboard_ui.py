@@ -20,6 +20,7 @@ logger.init(cfg)
 
 db = db_helper.DBHelper(cfg).get()
 
+PER_PAGE = 25
 
 @app.route('/')
 def index():
@@ -55,6 +56,10 @@ def query_results(project, count, skip, timeframe, start, end):
     date_format = '%Y-%m-%d'
     if project:
         query['project'] = project
+
+    page_size = int(skip) if skip else PER_PAGE
+    current_page = int(count) if count else 1
+
     if timeframe:
         num_hours = int(timeframe)
         current_time = datetime.datetime.utcnow()
@@ -64,8 +69,12 @@ def query_results(project, count, skip, timeframe, start, end):
         start = datetime.datetime.strptime(start, date_format)
         end = datetime.datetime.strptime(end, date_format)
         query['created'] = {'$gte': start, '$lt': end}
-    records = db.test_results.find(query).sort('created', pymongo.DESCENDING)
-    return json_util.dumps(records)
+
+    records = db.test_results.find(query).sort('created', pymongo.DESCENDING).skip(page_size*(current_page-1)).limit(page_size)
+    total = {'total': db.test_results.find(query).count()}
+    response = {'total': total, 'records': records}
+
+    return json_util.dumps(response)
 
 
 if __name__ == '__main__':

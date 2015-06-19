@@ -1,9 +1,12 @@
 
 var Scoreboard = (function () {
     var board = {};
+    var row_cache = {};
+    var score = {};
 
     var table_div_id = null;
     var table = null;
+    var form = null;
     var table_header = null;
     var hostname = null;
 
@@ -11,19 +14,19 @@ var Scoreboard = (function () {
     var ci_accounts = null;
     var user_filter = null;
 
-    var row_cache = {};
-
     var spinner = null;
     var overlay = null;
     var opaque_overlay = null;
 
-    var score = {};
+    var page = 1; // Default value for the search
+    var page_size = null;
+    var num_results = null;
 
     var hide_overlay = function () {
         spinner.stop();
         overlay.remove();
         opaque_overlay.remove();
-    }
+    };
 
     var show_overlay = function () {
         overlay = $(document.createElement('div'));
@@ -58,7 +61,7 @@ var Scoreboard = (function () {
         spinner = new Spinner(opts).spin();
         $(spinner.el).appendTo(overlay);
 
-    }
+    };
 
     var gather_data_and_build = function () {
         show_overlay();
@@ -68,7 +71,8 @@ var Scoreboard = (function () {
             data: window.location.search.substring(1),
             success: function(data) {
                 ci_results = JSON.parse(data);
-                get_ci_accounts()
+                num_results = ci_results.length;
+                get_ci_accounts();
             }
         });
     };
@@ -80,9 +84,10 @@ var Scoreboard = (function () {
             success: function(data) {
                 parse_accounts(data);
                 build_table();
+                build_pagination();
             }
         });
-    }
+    };
 
     var find_ci_in_list = function (ci, list) {
         for (var i = 0; i < list.length; i++) {
@@ -90,7 +95,7 @@ var Scoreboard = (function () {
                 return list[i];
             }
         }
-    }
+    };
 
     var parse_accounts = function (ci_accounts_raw) {
         var all_ci_accounts = JSON.parse(ci_accounts_raw);
@@ -116,7 +121,7 @@ var Scoreboard = (function () {
                 }
             }
         }
-    }
+    };
 
     var ci_account_header = function (user_name, user_name_pretty) {
         return user_name_pretty + ' <br /> (' + user_name + ')';
@@ -133,6 +138,18 @@ var Scoreboard = (function () {
         td.addClass('no_result');
         td.html('&nbsp');
         return td;
+    };
+
+    var create_button = function (btn_type, btn_value) {
+        return $('<input/>', { type:btn_type, value:btn_value });
+    };
+
+    var toggle_page_btn = function (button, comparison) {
+        if (page == comparison) {
+            button.prop("disabled", true);
+        } else {
+            button.prop("disabled", false);
+        }
     };
 
     var add_header = function (header_title) {
@@ -218,9 +235,13 @@ var Scoreboard = (function () {
             }
             td.appendTo(result_row);
         }
-    }
+    };
 
     var build_table = function () {
+        if ($('#scoreboard table').length) {
+            $('#scoreboard table').remove();
+        }
+
         table = $(document.createElement('table'));
         table.addClass('pretty_table');
         table.attr('cellspacing', 0);
@@ -254,10 +275,18 @@ var Scoreboard = (function () {
         // takes a while to actually build out the table, but at least
         // it will be more exciting to watch all the results pop up
         // on the screen instead of just blank page.
-        var index = 0;
-        var num_results = ci_results.length;
+
+        if (page_size == '') {
+            page_size = 25; // Default value if not set
+        }
+
+        var index = page_size * (page - 1);
+        var max = page * page_size;
+
+        score = {};
+
         (function handle_patchset_wrapper() {
-            if (index < num_results) {
+            if (index < max && ci_results[index] != null) {
                 handle_patchset(ci_results[index]);
                 index++;
                 window.setTimeout(handle_patchset_wrapper, 0);
@@ -293,6 +322,50 @@ var Scoreboard = (function () {
         }
     };
 
+    var build_pagination = function () {
+        var container = $('#paginator');
+
+        if (num_results != null) {
+            var previous_btn = create_button ('button', '<');
+            var index = $('<label>').text('1');
+            var next_btn = create_button ('button', '>');
+
+            previous_btn.appendTo(container);
+            index.appendTo(container);
+            next_btn.appendTo(container);
+
+            n = parseInt(index.text());
+            max = Math.ceil(num_results / page_size);
+
+            toggle_page_btn(previous_btn, '1');
+            toggle_page_btn(next_btn, max);
+
+            previous_btn.click(function() {
+                n = parseInt(index.text());
+                if (n > 1) {
+                    page = n - 1;
+                    index.text(page);
+                    next_btn.prop("disabled", false);
+                    build_table();
+                }
+                toggle_page_btn(previous_btn, '1');
+            });
+
+            next_btn.click(function() {
+                n = parseInt(index.text());
+                max = Math.ceil(num_results / page_size);
+
+                if (n < max) {
+                    page = n + 1;
+                    index.text(page);
+                    previous_btn.prop("disabled", false);
+                    build_table();
+                }
+                toggle_page_btn(next_btn, max);
+            });
+        }
+    };
+
     var add_input_to_form = function (form, input_type, label_text, input_name, starting_val) {
         var label = $('<label>').text(label_text + ":");
         var input = $('<input/>').attr({type: input_type, id: input_name, name: input_name});
@@ -302,18 +375,18 @@ var Scoreboard = (function () {
         }
         label.appendTo(form);
         return input;
-    }
+    };
 
     var add_break_to_form = function (form) {
         $('<br/>').appendTo(form);
-    }
+    };
 
     var get_param_by_name = function (name) {
         name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
         var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
             results = regex.exec(window.location.search);
         return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
-    }
+    };
 
     board.show_query_box = function (host, container) {
         var qb_container = $('#' + container);
@@ -334,8 +407,9 @@ var Scoreboard = (function () {
         var current_timeframe = get_param_by_name('timeframe');
         var start_date = get_param_by_name('start');
         var end_date = get_param_by_name('end');
+        page_size = get_param_by_name('page_size');
 
-        var form = $(document.createElement('form'));
+        form = $(document.createElement('form'));
 
         add_input_to_form(form, 'text', 'Project Name', 'project', current_project);
         add_input_to_form(form, 'text', 'CI Account Username', 'user', current_user);
@@ -343,16 +417,17 @@ var Scoreboard = (function () {
         add_input_to_form(form, 'text', 'Timeframe (hours)', 'timeframe', current_timeframe);
         add_input_to_form(form, 'date', 'Start Date', 'start', start_date);
         add_input_to_form(form, 'date', 'End Date', 'end', end_date);
-        // TODO: Implement the "start" and "count" filters so we can do pagination
+        add_input_to_form(form, 'text', 'Page Size', 'page_size', page_size);
 
         submit_button = $('<input/>', { type:'submit', value:'GO!'});
         submit_button.appendTo(form);
+
         form.submit(function(){
             location.href = '/' + $(this).serialize();
         });
 
         form.appendTo(qb_div);
-    }
+    };
 
     board.build = function (host, container) {
         hostname = host;

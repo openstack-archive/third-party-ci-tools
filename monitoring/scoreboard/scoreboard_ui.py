@@ -20,7 +20,6 @@ logger.init(cfg)
 
 db = db_helper.DBHelper(cfg).get()
 
-
 @app.route('/')
 def index():
     return render_template('index.html', host=request.host)
@@ -42,19 +41,18 @@ def results():
     # TODO: We should have a cache for these requests
     # so we don't get hammered by reloading pages
     project = request.args.get('project', None)
-    count = request.args.get('count', None)
-    skip = request.args.get('skip', None)
     timeframe = request.args.get('timeframe', None)
     start = request.args.get('start', None)
     end = request.args.get('end', None)
 
-    return query_results(project, count, skip, timeframe, start, end)
+    return query_results(project, timeframe, start, end)
 
-def query_results(project, count, skip, timeframe, start, end):
+def query_results(project, timeframe, start, end):
     query = {}
     date_format = '%Y-%m-%d'
     if project:
         query['project'] = project
+
     if timeframe:
         num_hours = int(timeframe)
         current_time = datetime.datetime.utcnow()

@@ -1,0 +1,10 @@
+Verified+2: Jenkins
+Code-Review+2: Kurt Taylor <kurt.r.taylor@gmail.com>
+Code-Review+2: Mikhail S Medvedev <mihailmed@gmail.com>
+Workflow+1: Mikhail S Medvedev <mihailmed@gmail.com>
+Code-Review+1: Marcus V R Nascimento <marcusvrn@gmail.com>
+Submitted-by: Jenkins
+Submitted-at: Mon, 22 Jun 2015 13:17:21 +0000
+Reviewed-on: https://review.openstack.org/191986
+Project: stackforge/third-party-ci-tools
+Branch: refs/heads/master

@@ -167,6 +167,17 @@ class Gerrit(object):
             chunk = _query_chunk("%s %s" % (query, sortkey))
         return alldata
 
+    def lsMembers(self, group):
+        cmd = "gerrit ls-members '%s'" % group
+        out, err = self._ssh(cmd)
+        if not out:
+            return False
+        lines = out.split('\n')
+        if not lines:
+            return False
+
+        return lines
+
     def _open(self):
         client = paramiko.SSHClient()
         client.load_system_host_keys()

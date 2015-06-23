@@ -301,24 +301,74 @@ var Scoreboard = (function () {
         var score_row = null;
         var label = null;
 
-        var scores = Object.keys(score);
+        score_row = $(document.createElement('tr'));
 
-        for (var i = 0; i < scores.length; i++) {
-            var result_type = scores[i];
-            score_row = $(document.createElement('tr'));
+        label = create_header();
+        label.html('Score');
+        label.appendTo(score_row);
+        $(score_row).insertAfter($('table tr.table_header'));
 
-            label = create_header();
-            label.html(result_type);
-            label.appendTo(score_row);
+        for (var j = 0; j < ci_accounts.length; j++) {
+            var ci = ci_accounts[j]
 
-            for (var j = 0; j < ci_accounts.length; j++) {
-                var ci = ci_accounts[j]
-
-                label = create_header();
-                label.html(score[result_type][ci._id] || 0);
-                label.appendTo(score_row);
+            score_header = create_header();
+            score_header.appendTo(score_row);
+            var score_canvas = $('<canvas/>').css({
+                width: '75px',
+                height: '75px',
+            })
+            score_header.html(score_canvas);
+            var ctx = score_canvas[0].getContext("2d");
+            var data = []
+            var count = 0;
+            if (score['SUCCESS'] && score['SUCCESS'][ci._id] > 0) {
+                data.push({
+                    value: score['SUCCESS'][ci._id],
+                    color:'#00FF00',
+                    highlight: '#00FF00',
+                    label: 'Success',
+                });
+                count += score['SUCCESS'][ci._id];
             }
-            $(score_row).insertAfter($('table tr.table_header'));
+
+            if (score['FAIL'] && score['FAIL'][ci._id] > 0) {
+                data.push({
+                    value: score['FAIL'][ci._id],
+                    color:'#FF3300',
+                    highlight: '#FF3300',
+                    label: 'Fail',
+                });
+                count += score['FAIL'][ci._id];
+            }
+            if (score['UNKNOWN'] && score['UNKNOWN'][ci._id] > 0) {
+                data.push({
+                    value: score['UNKNOWN'][ci._id],
+                    color:'#FF0000',
+                    highlight: '#FF0000',
+                    label: 'Unknown',
+                });
+                count += score['UNKNOWN'][ci._id];
+            }
+
+            var table = $('#scoreboard > table > tbody > tr')
+            var total_count = $('#scoreboard > table > tbody > tr').length - 2; // don't count the first two rows
+            var missing = total_count - count;
+            if (missing > 0) {
+                data.push({
+                    value: missing,
+                    color:'#FFFFFF',
+                    highlight: '#FFFFFF',
+                    label: 'Missing',
+                });
+            }
+
+            options = {
+                animation: false,
+                showTooltips: false,
+                segmentStrokeColor: 'grey',
+
+            };
+            var score_chart = new Chart(ctx).Pie(data, options);
         }
     };
 

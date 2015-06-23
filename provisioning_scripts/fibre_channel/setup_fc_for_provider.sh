@@ -33,5 +33,5 @@ if [[ -z $fc_pci_device ]]; then
       fc_pci_device=$(systool -c fc_host -v | grep -B12 "Online" | grep "Class Device path" | cut -d / -f 6 | tr '\n' ' ')
       echo "Auto-detected FC PCI DEVICE: $fc_pci_device"
     fi
-    echo export $fc_pci_device >> /etc/profile.d/fc_devices.sh
+    echo "export fc_pci_device='$fc_pci_device'" >> /etc/profile.d/fc_devices.sh
 fi

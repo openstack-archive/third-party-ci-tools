@@ -87,7 +87,7 @@ nova_results=$?
 
 # Get our Virsh name
 VIRSH_NAME=$(echo "$NOVA_DETAILS" | grep instance_name | cut -d \| -f 3 | tr -d '[:space:]')
-virsh_result=$?
+virsh_result=1
 echo "VIRSH_NAME result: $virsh_result"
 if [[ $nova_result -ne 0 || $virsh_result -ne 0 || -z "$VIRSH_NAME" ]]; then
     echo "Unable to get Virsh Name. Aborting. Debug info:"
@@ -136,21 +136,16 @@ let num_attached=0
 for pci in $fc_pci_device; do
     echo $pci
     BUS=$(echo $pci | cut -d : -f2)
-    SLOT=$(echo $pci | cut -d : -f3 | cut -d . -f1)
-    FUNCTION=$(echo $pci | cut -d : -f3 | cut -d . -f2)
-    XML="<hostdev mode='subsystem' type='pci' managed='yes'><source><address domain='0x0000' bus='0x$BUS' slot='0x$SLOT' function='0x$FUNCTION'/></source></hostdev>"
     echo $XML
     fcoe=`mktemp --suffix=_fcoe.xml`
     echo $XML > $fcoe
 
-    scp -i $PROVIDER_KEY $fcoe $PROVIDER_USER@$HYPERVISOR:/tmp/
 
     # Run passthrough and clean up.
     # TODO: At the point where we can do more than one node on a provider we
     # will need to do this cleanup at the end of the job and not *before* attaching
     # since we won't know which ones are still in use
     echo $(sudo lspci | grep -i fib)
-    ssh -i $PROVIDER_KEY $PROVIDER_USER@$HYPERVISOR "virsh nodedev-dettach pci_0000_${BUS}_${SLOT}_${FUNCTION}"
 
     detach_result=$?
     echo "Detach result: $detach_result"
@@ -160,7 +155,6 @@ for pci in $fc_pci_device; do
     fi
 
     echo $(sudo lspci | grep -i fib)
-    ssh -i $PROVIDER_KEY $PROVIDER_USER@$HYPERVISOR "virsh attach-device $VIRSH_NAME $fcoe"
     attach_result=$?
     echo "Attach result: $attach_result"
     if [[ $attach_result -eq 0 ]]; then

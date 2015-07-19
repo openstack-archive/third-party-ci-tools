@@ -1,0 +1,8 @@
+Verified+2: Jenkins
+Code-Review+2: Mikhail S Medvedev <mihailmed@gmail.com>
+Workflow+1: Mikhail S Medvedev <mihailmed@gmail.com>
+Submitted-by: Jenkins
+Submitted-at: Sun, 19 Jul 2015 03:37:58 +0000
+Reviewed-on: https://review.openstack.org/191490
+Project: stackforge/third-party-ci-tools
+Branch: refs/heads/master

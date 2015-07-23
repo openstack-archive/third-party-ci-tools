@@ -1,0 +1,51 @@
+openstack/nova:
+    -  VMware NSX CI
+    -  Microsoft Hyper-V CI
+    -  Citrix XenServer CI
+    -  IBM PowerKVM CI
+    -  Virtuozzo Storage CI
+    -  XenProject CI
+    - DB Datasets CI
+    - Jenkins
+openstack/cinder:
+    - IBM DB2 CI
+    - Pure Storage CI
+    - Microsoft iSCSI CI
+    - Tintri CI
+    - Blockbridge EPS CI
+    - Scality CI
+    - SolidFire CI
+    - NetApp CI
+    - Virtuozzo Storage CI
+    - StorPool distributed storage CI
+    - Dell Storage CI
+    - Datera CI
+    - HP Storage CI
+    - NetApp FC CI
+    - Violin Memory V6000 CI
+    - CloudByte CI
+    - Nexenta CI
+    - HDS HNAS CI
+    - EMC VNX CI
+    - VEDAMS DOTHILLDRIVER CI
+    - Hitachi HBSD CI
+    - Jenkins
+openstack/neutron:
+    - A10 Networks CI
+    - Arista CI
+    - Big Switch CI
+    - Freescale CI
+    - HP Networking CI
+    - IBM SDN-VE CI
+    - Mellanox CI
+    - Metaplugin CI
+    - Microsoft Hyper-V CI
+    - Nuage CI
+    - OpenContrail CI
+    - Ryu CI
+    - VMware NSX CI
+    - Jenkins
+openstack/manila:
+    - Jenkins
+    - NetApp CI
+    - HP Storage CI

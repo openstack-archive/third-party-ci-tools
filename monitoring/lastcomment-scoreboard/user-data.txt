@@ -1,0 +1,20 @@
+#cloud-config
+
+# Cloud init config to serve lastcomment json data
+# Serves up last comment report at 0.0.0.0/index.html
+# Tested on ubuntu
+# https://github.com/jogo/lastcomment
+
+repo_update: true
+repo_upgrade: all
+
+packages:
+ - git
+ - nginx
+
+runcmd:
+ - git clone https://github.com/jogo/lastcomment.git /root/lastcomment
+ - rm /usr/share/nginx/html/index.html
+ - cp /root/lastcomment/report.html /usr/share/nginx/html/index.html
+ - /root/lastcomment/lastcomment.py -f /root/lastcomment/ci.yaml -c 100 --json /usr/share/nginx/html/lastcomment.json
+ - (crontab -l ; echo "*/20 * * * * /root/lastcomment/lastcomment.py -f /root/lastcomment/ci.yaml -c 100 --json /usr/share/nginx/html/lastcomment.json") | crontab

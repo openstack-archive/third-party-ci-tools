@@ -36,7 +36,9 @@ ALLOWED_CMDS="
 ^virsh nodedev-reattach pci_0000_[02][51]_00_[23]$
 ^scp -t /tmp/$
 ^virsh attach-device instance-[0-9a-f]* /tmp/tmp.*_fcoe.xml$
-^echo \\\$fc_pci_device$"
+^echo \\\$fc_pci_device$
+^systool -c fc_host -v$
+^systool -c fc_host -v | grep -B12 'Online' | grep 'Class Device path' | grep '.*'$"
 
 #Don't allow any sudo commands
 if [[ ! $SSH_ORIGINAL_COMMAND =~ sudo ]]; then

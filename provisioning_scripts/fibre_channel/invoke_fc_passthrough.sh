@@ -128,13 +128,37 @@ fi
 
 echo "Found pci devices: $fc_pci_device"
 
+function is_device_online() {
+   fc_device=$1
+   # If a device is not "Online" we'll get an empty
+   # string as a result of the following command.
+   ONLINE=$(systool -c fc_host -v | grep -B12 "Online" | grep "Class Device path" | grep "$fc_device")
+   echo "online result='$ONLINE'"
+   if [ -z "$ONLINE" ]; then
+       return 0;
+   else
+       return 1;
+   fi
+}
+
 exit_code=1
 errexit=$(set +o | grep errexit)
 #Ignore errors
 set +e
 let num_attached=0
 for pci in $fc_pci_device; do
-    echo $pci
+    echo "Trying passthrough for $pci"
+    is_device_online $pci
+    online=$?
+    if [ $online -eq 1 ]; then
+        echo "Device($pci) is Online"
+    else
+        echo "Device($pci) is NOT Online"
+        # It does no good to passthrough an HBA that isn't Online.
+        # When an HBA goes into 'Linkdown' or 'Offline' mode, the
+        # host typically needs to get rebooted.
+        continue
+    fi
     BUS=$(echo $pci | cut -d : -f2)
     SLOT=$(echo $pci | cut -d : -f3 | cut -d . -f1)
     FUNCTION=$(echo $pci | cut -d : -f3 | cut -d . -f2)

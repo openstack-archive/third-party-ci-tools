@@ -1,0 +1,65 @@
+table.table {
+  white-space: nowrap;
+}
+
+.hover {
+  background-color: #EEE;
+}
+
+.failure {
+  color: #C00;
+  font-weight: bold;
+}
+
+.success {
+  color: #0C0;
+  font-weight: bold;
+}
+
+.unstable {
+  color: #BB0;
+  font-weight: bold;
+}
+
+.unregistered {
+  color: #333;
+  font-weight: bold;
+}
+
+.ci-user {
+  background-color: #DDD !important;
+  font-style: italic;
+}
+
+.blank-row {
+  height: 20px;
+}
+
+.popover {
+  max-width: 100%;
+}
+
+.no-style-link:link {
+  text-decoration: none;
+  color: #333;
+}
+
+.no-style-link:visited {
+  text-decoration: none;
+  color: #333;
+}
+
+.no-style-link:hover {
+  text-decoration: none;
+  color: #333;
+}
+
+.no-style-link:active {
+  text-decoration: none;
+  color: #333;
+}
+
+.glyphicon-none:before {
+  content: "\2122";
+  color: transparent !important;
+}

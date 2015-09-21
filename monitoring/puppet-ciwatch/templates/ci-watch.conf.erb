@@ -1,0 +1,18 @@
+[AccountInfo]
+gerrit_ssh_key = <%= @ssh_private_key_file %>
+gerrit_username = <%= @gerrit_user %>
+gerrit_host = <%= @gerrit_hostname %>
+gerrit_port = <%= @gerrit_port %>
+
+[Data]
+debug = True
+data_dir = /var/lib/ciwatch/
+
+[database]
+connection = mysql+mysqldb://ciwatch:<%= @mysql_password %>@localhost/ciwatch
+
+[misc]
+; This is a more complete list that is not missing any CI's from the wiki
+; It may include projects that don't actually do the third party CI thing
+; projects = cinder,nova,swift,rally,murano,keystone,ironic,octavia,os-brick,neutron,tempest,neutron-lbaas,devstack,designate,manila
+projects = cinder,nova,swift,rally,murano,ironic,octavia,os-brick,neutron,neutron-lbaas,devstack,manila

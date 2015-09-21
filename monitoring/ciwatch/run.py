@@ -15,4 +15,4 @@
 import ciwatch
 
 if __name__ == "__main__":
-    ciwatch.app.run(debug=True)
+    ciwatch.app.run(debug=True, host='0.0.0.0')

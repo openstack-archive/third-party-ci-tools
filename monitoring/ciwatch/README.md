@@ -1,5 +1,14 @@
 # CI Watch
 
+## Configuration
+
+Configuration is stored in the `ci-watch.conf` file. Importantly, you can
+specify a directory to store the `third-party-ci.log` file (data\_dir) as well
+as the database to connect to. Look at `ci-watch.conf.sample` for an example.
+
+Other settings should be self explanatory based on the provided configuration
+file.
+
 ## Installation
 
 From this folder, run the following commands.
@@ -23,16 +32,6 @@ Stream events from Gerrit and append valid events to `third-party-ci.log`.
 
 `ci-watch-populate-database`.
 Add all entries from `third-party-ci.log` to the database.
-
-
-## Configuration
-
-Configuration is stored in the `ci-watch.conf` file. Importantly, you can
-specify a directory to store the `third-party-ci.log` file (data\_dir) as well
-as the database to connect to. Look at `ci-watch.conf.sample` for an example.
-
-Other settings should be self explanatory based on the provided configuration
-file.
 
 ## State of the project
 

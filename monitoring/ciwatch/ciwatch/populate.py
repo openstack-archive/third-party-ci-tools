@@ -12,13 +12,16 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import os
+
 from ciwatch import db
 from ciwatch.events import parse_json_event, add_event_to_db
+from ciwatch.log import DATA_DIR
 
 
 def get_data():
     data = []
-    with open('/var/data/third-party-ci.log') as file_:
+    with open(os.path.join(DATA_DIR, 'third-party-ci.log')) as file_:
         for line in file_:
             event = parse_json_event(line)
             if event is not None:

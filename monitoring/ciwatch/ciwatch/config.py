@@ -16,9 +16,19 @@ import os
 
 from iniparse import INIConfig
 
-_fdir = os.path.dirname(os.path.realpath(__file__))
-_conf_dir = os.path.dirname(_fdir)
-cfg = INIConfig(open(_conf_dir + '/ci-watch.conf'))
+
+def get_config():
+    this_file = os.path.dirname(os.path.realpath(__file__))
+    this_dir = os.path.dirname(this_file)
+    conf_files = [os.path.join(this_dir, 'ci-watch.conf'),
+                  '/etc/ciwatch/ci-watch.conf']
+    # Read first existing conf file, ignore the rest
+    for conf_file in conf_files:
+        if os.path.exists(conf_file):
+            return INIConfig(open(conf_file))
+    raise Exception('Could not read configuration from %s' % conf_files)
+
+cfg = get_config()
 
 
 def get_projects():

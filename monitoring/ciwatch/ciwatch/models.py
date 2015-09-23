@@ -24,7 +24,7 @@ class Project(Base):
     __tablename__ = "projects"
 
     id = Column(Integer, primary_key=True)
-    name = Column(String, unique=True)
+    name = Column(String(128), unique=True)
 
     def __repr__(self):
         return "<Project(name='%s')>" % self.name
@@ -35,12 +35,12 @@ class PatchSet(Base):
 
     id = Column(Integer, primary_key=True)
     created = Column(DateTime)
-    # ref = Column(String, unique=True)
-    ref = Column(String)  # Why are there duplicate refs?
+    # ref = Column(String(64), unique=True)
+    ref = Column(String(64))  # Why are there duplicate refs?
     # Verified only represents Jenkin's vote
     verified = Column(Boolean, nullable=True, default=None)
 
-    commit_message = Column(String)
+    commit_message = Column(String(4096))
 
     project_id = Column(Integer, ForeignKey('projects.id'))
     project = relationship("Project", backref=backref('patch_sets',
@@ -55,8 +55,8 @@ class Comment(Base):
     __tablename__ = "comments"
 
     id = Column(Integer, primary_key=True)
-    result = Column(String)
-    log_url = Column(String, nullable=True, default=None)
+    result = Column(String(64))
+    log_url = Column(String(1024), nullable=True, default=None)
 
     ci_server_id = Column(Integer, ForeignKey('ci_servers.id'))
     ci_server = relationship("CiServer", backref=backref('comments',
@@ -75,7 +75,7 @@ class CiServer(Base):
     __tablename__ = "ci_servers"
 
     id = Column(Integer, primary_key=True)
-    name = Column(String)
+    name = Column(String(128))
 
     # Official OpenStack CIs are trusted (e.g., Jenkins)
     trusted = Column(Boolean, default=False)
@@ -92,7 +92,7 @@ class CiOwner(Base):
     __tablename__ = "ci_owners"
 
     id = Column(Integer, primary_key=True)
-    name = Column(String, unique=True)
+    name = Column(String(128), unique=True)
 
     def __repr__(self):
         return "<CiOwner(name='%s')>" % self.name

@@ -1,0 +1,10 @@
+Verified+2: Jenkins
+Code-Review+2: Mikhail S Medvedev <mihailmed@gmail.com>
+Code-Review+2: Patrick East <patrick.east@purestorage.com>
+Workflow+1: Patrick East <patrick.east@purestorage.com>
+Code-Review+1: Skyler Berg <skylertheberg@gmail.com>
+Submitted-by: Jenkins
+Submitted-at: Thu, 01 Oct 2015 01:17:49 +0000
+Reviewed-on: https://review.openstack.org/226063
+Project: stackforge/third-party-ci-tools
+Branch: refs/heads/master

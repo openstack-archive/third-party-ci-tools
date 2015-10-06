@@ -33,6 +33,7 @@ ALLOWED_CMDS="
 ^source keystonerc_jenkins \&\& nova list$
 ^source keystonerc_jenkins \&\& nova show [a-f0-9]+-[a-f0-9]+-[a-f0-9]+-[a-f0-9]+-[a-f0-9]+$
 ^virsh nodedev-dettach pci_0000_[02][51]_00_[23]$
+^virsh nodedev-reattach pci_0000_[02][51]_00_[23]$
 ^scp -t /tmp/$
 ^virsh attach-device instance-[0-9a-f]* /tmp/tmp.*_fcoe.xml$
 ^echo \\\$fc_pci_device$"

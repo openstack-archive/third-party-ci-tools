@@ -143,6 +143,8 @@ for pci in $fc_pci_device; do
     fcoe=`mktemp --suffix=_fcoe.xml`
     echo $XML > $fcoe
 
+    fc_virsh_device="pci_0000_${BUS}_${SLOT}_${FUNCTION}"
+
     scp -i $PROVIDER_KEY $fcoe $PROVIDER_USER@$HYPERVISOR:/tmp/
 
     # Run passthrough and clean up.
@@ -150,12 +152,23 @@ for pci in $fc_pci_device; do
     # will need to do this cleanup at the end of the job and not *before* attaching
     # since we won't know which ones are still in use
     echo $(sudo lspci | grep -i fib)
-    ssh -i $PROVIDER_KEY $PROVIDER_USER@$HYPERVISOR "virsh nodedev-dettach pci_0000_${BUS}_${SLOT}_${FUNCTION}"
+    ssh -i $PROVIDER_KEY $PROVIDER_USER@$HYPERVISOR "virsh nodedev-dettach $fc_virsh_device"
 
     detach_result=$?
     echo "Detach result: $detach_result"
     if [[ $detach_result -ne 0 ]]; then
-        echo "Detach failed. Trying next device..."
+        echo "Detach failed ($detach_result). Trying next device..."
+        continue
+    fi
+
+    # Reattach the device to the host.
+    # This will hopefully reset the device
+    echo $(sudo lspci | grep -i fib)
+    ssh -i $PROVIDER_KEY $PROVIDER_USER@$HYPERVISOR "virsh nodedev-reattach $fc_virsh_device"
+    reattach_result=$?
+    echo "reattach result: $reattach_result"
+    if [[ $reattach_result -ne 0 ]]; then
+        echo "Reattach failed ($reattach_result). Trying next device..."
         continue
     fi
 

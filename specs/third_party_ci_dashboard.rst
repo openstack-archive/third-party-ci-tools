@@ -87,7 +87,7 @@ Repositories
 ------------
 
 During the Kilo Design Summit the group discussed
-review of the Stackforge radar repository [#radar-stackforge-repo]_.
+review of the radar repository [#radar-repo]_.
 
 Servers
 -------
@@ -131,6 +131,6 @@ References
    https://etherpad.openstack.org/p/Third-Party-CI-Dashboard-InitialPlanning
 .. [#ci-dashboard-repo] CI Dashboard Github Repository
    https://github.com/Triniplex/third-party-ci-dashboard.git
-.. [#radar-stackforge-repo] https://github.com/stackforge/radar
+.. [#radar-repo] https://github.com/openstack/radar
 .. [#third-party-ci-dashboard-server] http://dashboard.triniplex.com
 

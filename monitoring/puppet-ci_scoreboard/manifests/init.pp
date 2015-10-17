@@ -86,7 +86,7 @@ class ci_scoreboard (
     ensure   => latest,
     provider => git,
     revision => 'master',
-    source   => 'http://github.com/stackforge/third-party-ci-tools',
+    source   => 'http://github.com/openstack/third-party-ci-tools',
   } ->
   file { '/opt/scoreboard':
     ensure => 'link',

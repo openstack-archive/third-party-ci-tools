@@ -24,9 +24,16 @@
 #
 
 RC=${RC:-"/home/stack/devstack/accrc/admin/admin"}
+OS_NETWORK_PROVIDER=${OS_NETWORK_PROVIDER:-"nova"}
 
 source $RC
 for ip in `nova floating-ip-list | grep public | grep "| -" | cut -d \| -f 2`; do
     echo "Deleting unused floating $ip"
-    nova floating-ip-delete $ip
+    if [ "$OS_NETWORK_PROVIDER" == "nova" ]; then
+        nova floating-ip-delete $ip
+    elif [[ "$OS_NETWORK_PROVIDER" == "neutron" ]]; then
+        neutron floatingip-delete $ip
+    else
+        echo "Error: Unknown OpenStack network provider. OS_NETWORK_PROVIDER=${OS_NETWORK_PROVIDER}, choices are 'nova' or 'neutron'"
+    fi
 done

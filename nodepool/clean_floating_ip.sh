@@ -27,6 +27,10 @@ RC=${RC:-"/home/stack/devstack/accrc/admin/admin"}
 
 source $RC
 for ip in `nova floating-ip-list | grep public | grep "| -" | cut -d \| -f 2`; do
-    echo "Deleting unused floating $ip"
+    echo "Deleting unused floating ip $ip"
     nova floating-ip-delete $ip
+    if [ $? -ne 0 ]; then
+        echo "Trying neutron floatingip-delete..."
+        neutron floatingip-delete $ip
+    fi
 done

@@ -1,0 +1,10 @@
+Verified+2: Jenkins
+Code-Review+2: Ramy Asselin <ramy.asselin@hpe.com>
+Workflow+1: Ramy Asselin <ramy.asselin@hpe.com>
+Code-Review+1: Carl Bader <carl.bader@hp.com>
+Code-Review+2: Patrick East <patrick.east@purestorage.com>
+Submitted-by: Jenkins
+Submitted-at: Wed, 18 Nov 2015 21:18:00 +0000
+Reviewed-on: https://review.openstack.org/247090
+Project: openstack/third-party-ci-tools
+Branch: refs/heads/master

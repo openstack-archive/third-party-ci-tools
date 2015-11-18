@@ -146,22 +146,12 @@ function is_device_online() {
 
 exit_code=1
 errexit=$(set +o | grep errexit)
-#Ignore errors
+# Ignore errors
 set +e
 let num_attached=0
 for pci in $fc_pci_device; do
     echo "Trying passthrough for $pci"
-    is_device_online $pci
-    online=$?
-    if [ $online -eq 1 ]; then
-        echo "Device($pci) is Online"
-    else
-        echo "Device($pci) is NOT Online"
-        # It does no good to passthrough an HBA that isn't Online.
-        # When an HBA goes into 'Linkdown' or 'Offline' mode, the
-        # host typically needs to get rebooted.
-        continue
-    fi
+
     BUS=$(echo $pci | cut -d : -f2)
     SLOT=$(echo $pci | cut -d : -f3 | cut -d . -f1)
     FUNCTION=$(echo $pci | cut -d : -f3 | cut -d . -f2)
@@ -196,6 +186,20 @@ for pci in $fc_pci_device; do
     echo "reattach result: $reattach_result"
     if [[ $reattach_result -ne 0 ]]; then
         echo "Reattach failed ($reattach_result). Trying next device..."
+        continue
+    fi
+
+    # Now that the device has been re-attached to it's host device driver
+    # systool should be able to see it.  Make sure it's online.
+    is_device_online $pci
+    online=$?
+    if [ $online -eq 1 ]; then
+        echo "Device($pci) is Online"
+    else
+        echo "Device($pci) is NOT Online"
+        # It does no good to passthrough an HBA that isn't Online.
+        # When an HBA goes into 'Linkdown' or 'Offline' mode, the
+        # host typically needs to get rebooted.
         continue
     fi
 

@@ -52,7 +52,7 @@ def get_comments(change, name):
     """Generator that returns all comments by name on a given change."""
     body = None
     for message in change['messages']:
-        if 'author' in message and message['author']['name'] == name:
+        if 'author' in message and str(message['author']['_account_id']) == str(name):
             if (message['message'].startswith("Uploaded patch set") and
                len(message['message'].split()) is 4):
                 # comment is auto created from posting a new patch
@@ -78,7 +78,7 @@ def query_gerrit(name, count, project):
         changes = json.loads(r.text[4:])
     except ValueError:
         print "query: '%s' failed with:\n%s" % (query, r.text)
-        sys.exit(1)
+        return None
 
     comments = []
     for change in changes:

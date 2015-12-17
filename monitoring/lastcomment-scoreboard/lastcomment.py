@@ -72,13 +72,13 @@ def query_gerrit(name, count, project):
     if project:
         search = search + (" AND project:\"%s\"" % project)
     query = ("https://review.openstack.org/changes/?q=%s&"
-             "o=MESSAGES" % search)
+             "o=MESSAGES&o=DETAILED_ACCOUNTS" % search)
     r = requests.get(query)
     try:
         changes = json.loads(r.text[4:])
     except ValueError:
         print "query: '%s' failed with:\n%s" % (query, r.text)
-        sys.exit(1)
+        return []
 
     comments = []
     for change in changes:

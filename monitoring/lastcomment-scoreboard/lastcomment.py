@@ -48,11 +48,11 @@ class Comment(object):
         return repr((self.date, self.number))
 
 
-def get_comments(change, name):
+def get_comments(change, account_id):
     """Generator that returns all comments by name on a given change."""
     body = None
     for message in change['messages']:
-        if 'author' in message and message['author']['name'] == name:
+        if 'author' in message and str(message['author']['_account_id']) == str(account_id):
             if (message['message'].startswith("Uploaded patch set") and
                len(message['message'].split()) is 4):
                 # comment is auto created from posting a new patch
@@ -66,9 +66,9 @@ def get_comments(change, name):
             yield date, body
 
 
-def query_gerrit(name, count, project):
+def query_gerrit(account_id, count, project):
     # Include review messages in query
-    search = "reviewer:\"%s\"" % name
+    search = "reviewer:\"%s\"" % account_id
     if project:
         search = search + (" AND project:\"%s\"" % project)
     query = ("https://review.openstack.org/changes/?q=%s&"
@@ -78,11 +78,11 @@ def query_gerrit(name, count, project):
         changes = json.loads(r.text[4:])
     except ValueError:
         print "query: '%s' failed with:\n%s" % (query, r.text)
-        sys.exit(1)
+        return None
 
     comments = []
     for change in changes:
-        for date, message in get_comments(change, name):
+        for date, message in get_comments(change, account_id):
             if date is None:
                 # no comments from reviewer yet. This can happen since
                 # 'Uploaded patch set X.' is considered a comment.
@@ -108,12 +108,18 @@ def vote(comment, success, failure, log=False):
                     print line
 
 
-def generate_report(name, count, project):
+def generate_report(account_id, count, project):
+    try:
+        req = requests.get("https://review.openstack.org/accounts/%s/name" % account_id)
+        name = req.text.split('\n')[1].replace('"','')
+    except:
+        name = account_id
+
     result = {'name': name, 'project': project}
     success = collections.defaultdict(int)
     failure = collections.defaultdict(int)
 
-    comments = query_gerrit(name, count, project)
+    comments = query_gerrit(account_id, count, project)
 
     if len(comments) == 0:
         print "didn't find anything"
@@ -134,13 +140,13 @@ def generate_report(name, count, project):
     return result
 
 
-def print_last_comments(name, count, print_message, project, votes):
+def print_last_comments(account_id, count, print_message, project, votes):
     success = collections.defaultdict(int)
     failure = collections.defaultdict(int)
 
-    comments = query_gerrit(name, count, project)
+    comments = query_gerrit(account_id, count, project)
 
-    message = "last %s comments from '%s'" % (count, name)
+    message = "last %s comments from '%s'" % (count, account_id)
     if project:
         message += " on project '%s'" % project
     print message
@@ -171,7 +177,7 @@ def main():
                                      'reviewer')
     parser.add_argument('-n', '--name',
                         default="Elastic Recheck",
-                        help='unique gerrit name of the reviewer')
+                        help='unique gerrit account id of the reviewer')
     parser.add_argument('-c', '--count',
                         default=10,
                         type=int,

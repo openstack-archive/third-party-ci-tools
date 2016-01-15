@@ -26,13 +26,15 @@ import pprint
 class GerritWatcher(threading.Thread):
     log = logging.getLogger("gerrit.GerritWatcher")
 
-    def __init__(self, gerrit, username, hostname, port=29418, keyfile=None):
+    def __init__(self, gerrit, username, hostname, port=29418, keyfile=None,
+                 keepalive=0):
         threading.Thread.__init__(self)
         self.username = username
         self.keyfile = keyfile
         self.hostname = hostname
         self.port = port
         self.gerrit = gerrit
+        self.keepalive = keepalive
 
     def _read(self, fd):
         l = fd.readline()
@@ -54,6 +56,8 @@ class GerritWatcher(threading.Thread):
                            username=self.username,
                            port=self.port,
                            key_filename=self.keyfile)
+            transport = client.get_transport()
+            transport.set_keepalive(self.keepalive)
 
             stdin, stdout, stderr = client.exec_command("gerrit stream-events")
 
@@ -76,7 +80,7 @@ class GerritWatcher(threading.Thread):
 class Gerrit(object):
     log = logging.getLogger("gerrit.Gerrit")
 
-    def __init__(self, hostname, username, port=29418, keyfile=None):
+    def __init__(self, hostname, username, port=29418, keyfile=None, keepalive=0):
         self.username = username
         self.hostname = hostname
         self.port = port
@@ -84,6 +88,7 @@ class Gerrit(object):
         self.watcher_thread = None
         self.event_queue = None
         self.client = None
+        self.keepalive = keepalive
 
     def startWatching(self):
         self.event_queue = Queue.Queue()
@@ -92,7 +97,8 @@ class Gerrit(object):
             self.username,
             self.hostname,
             self.port,
-            keyfile=self.keyfile)
+            keyfile=self.keyfile,
+            keepalive=self.keepalive)
         self.watcher_thread.daemon = True
         self.watcher_thread.start()
 
@@ -186,6 +192,8 @@ class Gerrit(object):
                        username=self.username,
                        port=self.port,
                        key_filename=self.keyfile)
+        transport = client.get_transport()
+        transport.set_keepalive(self.keepalive)
         self.client = client
 
     def _ssh(self, command):

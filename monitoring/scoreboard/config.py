@@ -37,6 +37,13 @@ class Config:
     def gerrit_port(self):
         return self._int_value('GERRIT_PORT')
 
+    def gerrit_keepalive(self):
+        keepalive = self._int_value('GERRIT_KEEPALIVE')
+        # 0 is the safe default, meaning no keepalives
+        if keepalive is None:
+            keepalive = 0
+        return keepalive
+
     def db_uri(self):
         return self._value('DB_URI')
 

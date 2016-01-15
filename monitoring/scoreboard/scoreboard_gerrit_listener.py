@@ -128,8 +128,10 @@ class GerritCIListener():
         username = self.cfg.gerrit_user()
         port = self.cfg.gerrit_port()
         keyfile = self.cfg.gerrit_key()
+        keepalive = self.cfg.gerrit_keepalive()
 
-        self.g = gerrit.Gerrit(hostname, username, port=port, keyfile=keyfile)
+        self.g = gerrit.Gerrit(hostname, username, port=port,
+                               keyfile=keyfile, keepalive=keepalive)
         self.g.startWatching()
 
         self.periodic_query_users()

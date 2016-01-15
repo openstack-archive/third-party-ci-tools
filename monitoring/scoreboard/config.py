@@ -37,6 +37,9 @@ class Config:
     def gerrit_port(self):
         return self._int_value('GERRIT_PORT')
 
+    def gerrit_keepalive(self):
+        return self._int_value('GERRIT_KEEPALIVE')
+
     def db_uri(self):
         return self._value('DB_URI')
 

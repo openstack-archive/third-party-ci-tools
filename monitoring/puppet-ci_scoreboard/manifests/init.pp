@@ -40,6 +40,9 @@
 #
 # [*gerrit_port*]
 #
+# [*gerrit_keepalive*]
+#   Keepalive interval in seconds, or disabled when 0 (default)
+#
 #
 # === Examples
 #
@@ -57,6 +60,7 @@ class ci_scoreboard (
   $ssh_private_key,
   $gerrit_hostname = 'review.openstack.org',
   $gerrit_port = 29418,
+  $gerrit_keepalive = 0,
 ) {
 
   $ssh_private_key_file = '/var/lib/scoreboard/ssh/id_rsa'

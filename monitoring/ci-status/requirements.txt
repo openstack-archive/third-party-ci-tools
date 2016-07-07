@@ -1,0 +1,5 @@
+arrow
+simplejson
+requests
+lxml
+oslo.config>=3.12.0

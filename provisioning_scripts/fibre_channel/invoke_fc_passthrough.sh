@@ -132,8 +132,6 @@ function is_device_online() {
    fc_device=$1
    # If a device is not "Online" we'll get an empty
    # string as a result of the following command.
-   cmd="systool -c fc_host -v"
-   OUTPUT=$(ssh -i $PROVIDER_KEY $PROVIDER_USER@$HYPERVISOR "systool -c fc_host -v")
    test_fc_online="systool -c fc_host -v | grep -B12 'Online' | grep 'Class Device path' | grep '$fc_device'"
    ONLINE=$(ssh -i $PROVIDER_KEY $PROVIDER_USER@$HYPERVISOR "$test_fc_online")
    echo "online result='$ONLINE'"

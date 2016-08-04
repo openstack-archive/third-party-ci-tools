@@ -119,7 +119,7 @@ fi
 echo "Found Hypervisor hostname: $HYPERVISOR"
 
 fc_pci_device_cmd="echo \$$FC_PCI_VAR_NAME"
-fc_pci_device=$(ssh -i $PROVIDER_KEY $PROVIDER_USER@$HYPERVISOR "$fc_pci_device_cmd")
+fc_pci_device=$(ssh -i $PROVIDER_KEY $PROVIDER_USER@$HYPERVISOR "source /etc/profile; $fc_pci_device_cmd")
 
 if [[ -z $fc_pci_device ]]; then
     echo "No FC device known. Set fc_pci_device in your /etc/profile.d or /etc/environment (depending on distro and ssh configuration) to the desired 'Class Device path', e.g. '0000:21:00.2'"

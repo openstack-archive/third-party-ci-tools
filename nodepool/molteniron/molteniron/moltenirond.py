@@ -24,6 +24,7 @@ import sys
 import time
 import traceback
 import yaml
+import argparse
 
 from contextlib import contextmanager
 
@@ -52,55 +53,79 @@ class JSON_encoder_with_DateTime(json.JSONEncoder):
         return json.JSONEncoder.default(self, o)
 
 
-class MoltenIronHandler(BaseHTTPRequestHandler):
+# We need to turn BaseHTTPRequestHandler into a "new-style" class for
+# Python 2.x
+# NOTE: URL is over two lines :(
+# http://stackoverflow.com/questions/1713038/super-fails-with-error-typeerror-
+# argument-1-must-be-type-not-classobj
+class OBaseHTTPRequestHandler(BaseHTTPRequestHandler, object):
+    pass
 
-    def do_POST(self):
-        self.data_string = self.rfile.read(int(self.headers['Content-Length']))
-        response = self.parse(self.data_string)
-        self.send_reply(response)
+# We need to pass in conf into MoltenIronHandler, so make a class factory
+# to do that
+# NOTE: URL is over two lines :(
+# http://stackoverflow.com/questions/21631799/how-can-i-pass-parameters-to-a-
+# requesthandler
+def MakeMoltenIronHandlerWithConf(conf):
+    class MoltenIronHandler(OBaseHTTPRequestHandler):
+        def __init__(self, *args, **kwargs):
+            # Note this *needs* to be done before call to super's class!
+            self.conf = conf
+            super(OBaseHTTPRequestHandler, self).__init__(*args, **kwargs)
 
-    def send_reply(self, response):
-        if DEBUG:
-            print("send_reply: response = %s" % (response,))
-        # get the status code off the response json and send it
-        status_code = response['status']
-        self.send_response(status_code)
-        self.send_header('Content-type', 'application/json')
-        self.end_headers()
-        self.wfile.write(json.dumps(response, cls=JSON_encoder_with_DateTime))
+        def do_POST(self):
+            CL = 'Content-Length'
+            self.data_string = self.rfile.read(int(self.headers[CL]))
+            response = self.parse(self.data_string)
+            self.send_reply(response)
 
-    def parse(self, request_string):
-        """Handle the request. Returns the response of the request """
-        try:
-            database = DataBase(conf)
-            # Try to json-ify the request_string
-            request = json.loads(request_string)
-            method = request.pop('method')
-            if method == 'add':
-                response = database.addBMNode(request)
-            elif method == 'allocate':
-                response = database.allocateBM(request['owner_name'],
-                                               request['number_of_nodes'])
-            elif method == 'release':
-                response = database.deallocateOwner(request['owner_name'])
-            elif method == 'get_field':
-                response = database.get_field(request['owner_name'],
-                                              request['field_name'])
-            elif method == 'set_field':
-                response = database.set_field(request['id'],
-                                              request['key'],
-                                              request['value'])
-            elif method == 'status':
-                response = database.status()
-            database.close()
-            del database
-        except Exception as e:
-            response = {'status': 400, 'message': str(e)}
+        def send_reply(self, response):
+            if DEBUG:
+                print("send_reply: response = %s" % (response,))
+            # get the status code off the response json and send it
+            status_code = response['status']
+            self.send_response(status_code)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps(response,
+                                        cls=JSON_encoder_with_DateTime))
 
-        if DEBUG:
-            print("parse: response = %s" % (response,))
+        def parse(self, request_string):
+            """Handle the request. Returns the response of the request """
+            try:
+                database = DataBase(self.conf)
+                # Try to json-ify the request_string
+                request = json.loads(request_string)
+                method = request.pop('method')
+                if method == 'add':
+                    response = database.addBMNode(request)
+                elif method == 'allocate':
+                    response = database.allocateBM(request['owner_name'],
+                                                   request['number_of_nodes'])
+                elif method == 'release':
+                    response = database.deallocateOwner(request['owner_name'])
+                elif method == 'get_field':
+                    response = database.get_field(request['owner_name'],
+                                                  request['field_name'])
+                elif method == 'set_field':
+                    response = database.set_field(request['id'],
+                                                  request['key'],
+                                                  request['value'])
+                elif method == 'status':
+                    response = database.status()
+                elif method == 'delete_db':
+                    response = database.delete_db()
+                database.close()
+                del database
+            except Exception as e:
+                response = {'status': 400, 'message': str(e)}
 
-        return response
+            if DEBUG:
+                print("parse: response = %s" % (response,))
+
+            return response
+
+    return MoltenIronHandler
 
 
 class Nodes(declarative_base()):
@@ -361,6 +386,8 @@ class DataBase():
         #   IPs.__table__.drop(self.engine, checkfirst=True)
         #   Nodes.__table__.drop(self.engine, checkfirst=True)
         metadata.drop_all(self.engine, checkfirst=True)
+
+        return {'status': 200}
 
     def create_metadata(self):
         # Instead of:
@@ -975,9 +1002,9 @@ class DataBase():
 def listener(conf):
     mi_addr = str(conf['serverIP'])
     mi_port = int(conf['mi_port'])
-    handler = MoltenIronHandler
+    handler_class = MakeMoltenIronHandlerWithConf(conf)
     print('Listening... to %s:%d' % (mi_addr, mi_port,))
-    moltenirond = HTTPServer((mi_addr, mi_port), handler)
+    moltenirond = HTTPServer((mi_addr, mi_port), handler_class)
     moltenirond.serve_forever()
 
 
@@ -1052,11 +1079,27 @@ def cleanLogs(conf):
 
 
 if __name__ == "__main__":
-    path = sys.argv[0]
-    dirs = path.split("/")
-    newPath = "/".join(dirs[:-1]) + "/"
+    parser = argparse.ArgumentParser(description="Molteniron daemon")
+    parser.add_argument("-c",
+                        "--conf-dir",
+                        action="store",
+                        type=str,
+                        dest="conf_dir",
+                        help="The directory where configuration is stored")
 
-    fobj = open(newPath + "conf.yaml", "r")
-    conf = yaml.load(fobj)
+    args = parser.parse_args ()
 
-    listener(conf)
+    if args.conf_dir:
+        if not os.path.isdir (args.conf_dir):
+            msg = "Error: %s is not a valid directory" % (args.conf_dir, )
+            print >> sys.stderr, msg
+            sys.exit(1)
+
+        yaml_file = os.path.realpath("%s/conf.yaml" % (args.conf_dir, ))
+    else:
+        yaml_file = "/usr/local/etc/molteniron/conf.yaml"
+
+    with open(yaml_file, "r") as fobj:
+        conf = yaml.load(fobj)
+
+        listener(conf)

@@ -1,0 +1,5 @@
+daemonize
+MySQL-python
+pyyaml
+sqlalchemy
+sqlalchemy_utils

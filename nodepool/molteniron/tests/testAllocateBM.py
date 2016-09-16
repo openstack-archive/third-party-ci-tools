@@ -1,8 +1,25 @@
 #!/usr/bin/env python
 
+# Copyright (c) 2016 IBM Corporation.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+# implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import sys
+import os
 import yaml
-from moltenirond import DataBase, TYPE_SQLITE_MEMORY
+import argparse
+from molteniron import moltenirond
 
 def compare_provisioned_nodes(lhs, rhs):
     lhs = lhs.copy()
@@ -16,12 +33,28 @@ def compare_provisioned_nodes(lhs, rhs):
     assert lhs == rhs
 
 if __name__ == "__main__":
-    path = sys.argv[0]
-    dirs = path.split("/")
-    newPath = "/".join(dirs[:-1]) + "/"
+    parser = argparse.ArgumentParser(description="Molteniron command line tool")
+    parser.add_argument("-c",
+                        "--conf-dir",
+                        action="store",
+                        type=str,
+                        dest="conf_dir",
+                        help="The directory where configuration is stored")
 
-    fobj = open(newPath + "conf.yaml", "r")
-    conf = yaml.load(fobj)
+    args = parser.parse_args(sys.argv[1:])
+
+    if args.conf_dir:
+        if not os.path.isdir (args.conf_dir):
+            msg = "Error: %s is not a valid directory" % (args.conf_dir, )
+            print >> sys.stderr, msg
+            sys.exit(1)
+
+        yaml_file = os.path.realpath("%s/conf.yaml" % (args.conf_dir, ))
+    else:
+        yaml_file = "/usr/local/etc/molteniron/conf.yaml"
+
+    with open(yaml_file, "r") as fobj:
+        conf = yaml.load(fobj)
 
     node1 = {
         "name":            "pkvmci816",
@@ -85,12 +118,7 @@ if __name__ == "__main__":
     }
 
     # 8<-----8<-----8<-----8<-----8<-----8<-----8<-----8<-----8<-----8<-----
-    database = DataBase(conf, TYPE_SQLITE_MEMORY)
-    database.delete_db()
-    database.close()
-    del database
-
-    database = DataBase(conf, TYPE_SQLITE_MEMORY)
+    database = moltenirond.DataBase(conf, moltenirond.TYPE_SQLITE_MEMORY)
     ret = database.addBMNode (node1)
     print ret
     assert ret == {'status': 200}
@@ -114,12 +142,12 @@ if __name__ == "__main__":
     del database
 
     # 8<-----8<-----8<-----8<-----8<-----8<-----8<-----8<-----8<-----8<-----
-    database = DataBase(conf, TYPE_SQLITE_MEMORY)
+    database = moltenirond.DataBase(conf, moltenirond.TYPE_SQLITE_MEMORY)
     database.delete_db()
     database.close()
     del database
 
-    database = DataBase(conf, TYPE_SQLITE_MEMORY)
+    database = moltenirond.DataBase(conf, moltenirond.TYPE_SQLITE_MEMORY)
     ret = database.addBMNode (node1)
     print ret
     assert ret == {'status': 200}
@@ -144,12 +172,12 @@ if __name__ == "__main__":
     del database
 
     # 8<-----8<-----8<-----8<-----8<-----8<-----8<-----8<-----8<-----8<-----
-    database = DataBase(conf, TYPE_SQLITE_MEMORY)
+    database = moltenirond.DataBase(conf, moltenirond.TYPE_SQLITE_MEMORY)
     database.delete_db()
     database.close()
     del database
 
-    database = DataBase(conf, TYPE_SQLITE_MEMORY)
+    database = moltenirond.DataBase(conf, moltenirond.TYPE_SQLITE_MEMORY)
     ret = database.addBMNode (node1)
     print ret
     assert ret == {'status': 200}

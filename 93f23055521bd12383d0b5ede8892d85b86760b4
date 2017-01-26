@@ -1,0 +1,9 @@
+Code-Review+2: Mikhail S Medvedev <mihailmed@gmail.com>
+Code-Review+2: Ramy Asselin <ramy.asselin@hpe.com>
+Workflow+1: Ramy Asselin <ramy.asselin@hpe.com>
+Verified+2: Jenkins
+Submitted-by: Jenkins
+Submitted-at: Thu, 26 Jan 2017 22:15:46 +0000
+Reviewed-on: https://review.openstack.org/425864
+Project: openstack/third-party-ci-tools
+Branch: refs/heads/master

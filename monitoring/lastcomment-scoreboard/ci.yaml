@@ -8,27 +8,54 @@ openstack/nova:
     - DB Datasets CI
     - Jenkins
 openstack/cinder:
-    - IBM DB2 CI
-    - Pure Storage CI
-    - Microsoft iSCSI CI
-    - Tintri CI
     - Blockbridge EPS CI
-    - Scality CI
-    - SolidFire CI
-    - NetApp CI
-    - Virtuozzo Storage CI
-    - StorPool distributed storage CI
-    - Dell Storage CI
-    - Datera CI
-    - HP Storage CI
-    - NetApp FC CI
-    - Violin Memory V6000 CI
     - CloudByte CI
-    - Nexenta CI
-    - HDS HNAS CI
+    - Coho Data Storage CI
+    - EMC CorpHD CI
+    - Dell Storage CI
+    - EMC Unity CI
+    - ITRI DISCO CI
+    - Vedams DotHillDriver CI
+    - Vedams- HPMSA FCISCSIDriver CI
     - EMC VNX CI
-    - VEDAMS DOTHILLDRIVER CI
+    - EMC XIO CI
+    - EMC VMAX CI
+    - FalconStor CI
+    - Fujitsu ETERNUS CI
+    - Huawei FusionStorage CI
+    - HGST Solutions CI
     - Hitachi HBSD CI
+    - Hitachi HBSD2 CI
+    - HDS HNAS CI
+    - HPE Storage CI
+    - XP Cinder CI
+    - IBM FlashSystem CI
+    - IBM GPFS CI
+    - IBM Storage CI
+    - Infinidat Cinder CI
+    - Infortrend Cinder CI
+    - Kaminario K2 CI
+    - Vedams- LenovoStorage FCISCSI CI
+    - NetApp CI
+    - Nexenta Edge CI
+    - Nexenta CI
+    - Nimble Storage CI
+    - ProphetStor CI
+    - Pure Storage CI
+    - QNAP ES CI
+    - Quobyte CI
+    - Reduxio HX550 CI
+    - SolidFire CI
+    - Synology DSM CI
+    - Tegile Storage CI
+    - Tintri CI
+    - Violin Memory V6000 CI
+    - VMware NSX CI
+    - Virtuozzo Storage CI
+    - Microsoft iSCSI CI
+    - X-IO OpenStack CI
+    - ZadaraStorage VPSA CI
+    - Oracle ZFSSA CI
     - Jenkins
 openstack/neutron:
     - A10 Networks CI

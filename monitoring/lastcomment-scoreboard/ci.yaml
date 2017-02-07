@@ -11,12 +11,13 @@ openstack/cinder:
     - Blockbridge EPS CI
     - CloudByte CI
     - Coho Data Storage CI
-    - EMC CorpHD CI
     - Dell Storage CI
-    - EMC Unity CI
     - ITRI DISCO CI
     - Vedams DotHillDriver CI
     - Vedams- HPMSA FCISCSIDriver CI
+    - EMC CorpHD CI
+    - EMC ScaleIO CI
+    - EMC Unity CI
     - EMC VNX CI
     - EMC XIO CI
     - EMC VMAX CI

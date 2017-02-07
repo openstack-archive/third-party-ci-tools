@@ -9,61 +9,10 @@ import datetime
 import json
 import sys
 import yaml
+import pdb
 
 import requests
-
-
-TIME_FORMAT = "%Y-%m-%d %H:%M:%S"
-
-
-class Comment(object):
-    date = None
-    number = None
-    subject = None
-    now = None
-
-    def __init__(self, date, number, subject, message):
-        super(Comment, self).__init__()
-        self.date = date
-        self.number = number
-        self.subject = subject
-        self.message = message
-        self.now = datetime.datetime.utcnow().replace(microsecond=0)
-
-    def __str__(self):
-        return ("%s (%s old) https://review.openstack.org/%s '%s' " % (
-            self.date.strftime(TIME_FORMAT),
-            self.age(),
-            self.number, self.subject))
-
-    def age(self):
-        return self.now - self.date
-
-    def __le__(self, other):
-        # self < other
-        return self.date < other.date
-
-    def __repr__(self):
-        # for sorting
-        return repr((self.date, self.number))
-
-
-def get_comments(change, name):
-    """Generator that returns all comments by name on a given change."""
-    body = None
-    for message in change['messages']:
-        if 'author' in message and message['author']['name'] == name:
-            if (message['message'].startswith("Uploaded patch set") and
-               len(message['message'].split()) is 4):
-                # comment is auto created from posting a new patch
-                continue
-            date = message['date']
-            body = message['message']
-            # https://review.openstack.org/Documentation/rest-api.html#timestamp
-            # drop nanoseconds
-            date = date.split('.')[0]
-            date = datetime.datetime.strptime(date, TIME_FORMAT)
-            yield date, body
+import comment
 
 
 def query_gerrit(name, count, project):
@@ -82,30 +31,27 @@ def query_gerrit(name, count, project):
 
     comments = []
     for change in changes:
-        for date, message in get_comments(change, name):
+        for date, message in comment.get_comments(change, name):
             if date is None:
                 # no comments from reviewer yet. This can happen since
                 # 'Uploaded patch set X.' is considered a comment.
                 continue
-            comments.append(Comment(date, change['_number'],
-                                    change['subject'], message))
-
+            comments.append(comment.Comment(date, change['_number'],
+                                            change['subject'], message))
     return sorted(comments, key=lambda comment: comment.date,
                   reverse=True)[0:count]
 
 
-def vote(comment, success, failure, log=False):
-    for line in comment.message.splitlines():
+def vote(cmt, success, failure, log=False):
+    for line in cmt.message.splitlines():
         if line.startswith("* ") or line.startswith("- "):
-            job = line.split(' ')[1]
-            if " : SUCCESS" in line:
+            if job.result == 'SUCCESS':
                 success[job] += 1
-                if log:
-                    print line
-            if " : FAILURE" in line:
+            elif job.result == 'FAILRE':
                 failure[job] += 1
-                if log:
-                    print line
+
+            if log:
+                print line
 
 
 def generate_report(name, count, project):
@@ -122,8 +68,8 @@ def generate_report(name, count, project):
     print "last seen: %s (%s old)" % (comments[0].date, comments[0].age())
     result['last'] = epoch(comments[0].date)
 
-    for comment in comments:
-        vote(comment, success, failure)
+    for cmt in comments:
+        vote(cmt, success, failure)
 
     total = sum(success.values()) + sum(failure.values())
     if total > 0:
@@ -214,7 +160,12 @@ def main():
     for project in names:
         print 'Checking project: %s' % project
         for name in names[project]:
-            print 'Checking name: %s' % name
+            if name != 'Jenkins':
+                url = ("https://wiki.openstack.org/wiki/ThirdPartySystems/%s" %
+                       name.replace(" ", "_"))
+                print 'Checking name: %s   -   %s' % (name, url)
+            else:
+                print('Checking name: %s' % name)
             try:
                 if args.json:
                     report['rows'].append(generate_report(

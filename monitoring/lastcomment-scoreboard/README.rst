@@ -73,4 +73,34 @@ To generate a html report for cinder's third party CI accounts on http://localho
     ./lastcomment.py -f ci.yaml -c 100 --json lastcomment.json
     python -m SimpleHTTPServer
 
+CI Reporter
+===========
 
+Script that produces statistics and a report of CI systems and their jobs.
+It can output in plain text or json to stdout or a file.
+
+Help
+----
+   ./cireporter.py -h
+
+Generate A Report
+-----------------
+
+To generate a plain text report that includes stats for all Cinder CI's
+
+    ./cireporter.py -i cinder.yaml -c 250
+
+Other Uses
+----------
+
+To see the latest Cinder Jenkins stats
+
+    ./cireporter.py -p openstack/cinder -n Jenkins -c 250
+
+To generate a report as json output to stdout
+
+    ./cireporter.py -p openstack/cinder -n Jenkins -c 250 -j
+
+To generate a report as json and write it to a file
+
+    ./cireporter.py -p openstack/cinder -n Jenkins -c 250 -j -o foo.json

@@ -47,7 +47,7 @@ class Job(object):
         result = job_split[4]
         time = None
         if result == 'SUCCESS' or result == 'FAILURE':
-            if 'in' in job_str and job_split[5] == 'in':
+            if ' in ' in job_str and job_split[5] == 'in':
                 time = " ".join(job_split[6:])
 
         return Job(job_name, time, url, result, job_str)

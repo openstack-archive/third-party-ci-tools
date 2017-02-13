@@ -1,1 +1,2 @@
 requests
+shyaml>=0.4

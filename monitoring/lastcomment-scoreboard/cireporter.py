@@ -7,7 +7,6 @@ import calendar
 import datetime
 import json
 import yaml
-import pdb
 
 import requests
 
@@ -193,7 +192,7 @@ def main():
     parser.add_argument('-c', '--count',
                         default=10,
                         type=int,
-                        help='unique gerrit name of the reviewer')
+                        help='number of records to evaluate')
     parser.add_argument('-i', '--input',
                         default=None,
                         help='yaml file containing list of names to search on'
@@ -201,13 +200,14 @@ def main():
                              ' (overwrites -p and -n)')
     parser.add_argument('-o', '--output',
                         default=None,
-                        help='Write the output to a file. Defaults to stdout.')
+                        help='write the output to a file. Defaults to stdout.')
     parser.add_argument('-j', '--json',
                         default=False,
                         action="store_true",
-                        help=("Generate report output in json format."))
+                        help=("generate report output in json format."))
     parser.add_argument('-p', '--project',
-                        help='only list hits for a specific project')
+                        help='only list hits for a specific project '
+                             '(ie: openstack/cinder)')
 
     args = parser.parse_args()
     names = {args.project: [args.name]}

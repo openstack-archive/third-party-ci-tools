@@ -1,0 +1,9 @@
+Code-Review+1: Sean McGinnis <sean.mcginnis@gmail.com>
+Code-Review+2: Mikhail S Medvedev <mihailmed@gmail.com>
+Workflow+1: Mikhail S Medvedev <mihailmed@gmail.com>
+Verified+2: Jenkins
+Submitted-by: Jenkins
+Submitted-at: Wed, 08 Mar 2017 16:47:32 +0000
+Reviewed-on: https://review.openstack.org/442671
+Project: openstack/third-party-ci-tools
+Branch: refs/heads/master

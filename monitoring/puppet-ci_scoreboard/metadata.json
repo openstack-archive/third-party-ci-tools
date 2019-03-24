@@ -4,7 +4,7 @@
   "author": "OpenStack CI",
   "summary": "Deploys Scoreboard - third-party CI status monitoring solution",
   "license": "Apache-2.0",
-  "source": "git://git.openstack.org/openstack-infra/puppet-ci_scoreboard.git",
+  "source": "https://git.openstack.org/openstack-infra/puppet-ci_scoreboard.git",
   "project_page": null,
   "issues_url": null,
   "dependencies": [

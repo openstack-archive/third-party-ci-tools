@@ -1,6 +1,3 @@
-# OpenStack Third Party CI Working Group Tools
+# This repo has moved to OpenDev
 
-## Overview
-
-Repository for third party continuous integration teams to share
- tools, configurations, plug-ins and documents.
+It can now be found at [https://opendev.org/x/third-party-ci-tools](https://opendev.org/x/third-party-ci-tools)
